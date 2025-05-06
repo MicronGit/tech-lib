@@ -1,0 +1,176 @@
+name: CD - Deploy to AWS
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    name: Build & Deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      # フロントエンドのビルド
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: npm ci
+      
+      - name: Build frontend
+        working-directory: ./app
+        run: npm run build
+      
+      # Lambda関数のバックエンドコードを準備
+      - name: Create API directory if not exists
+        run: mkdir -p api
+      
+      - name: Setup real API Lambda code with PostgreSQL
+        run: |
+          cd api
+          
+          # package.json作成
+          cat > package.json << 'EOL'
+          {
+            "name": "tech-lib-api",
+            "version": "1.0.0",
+            "description": "Tech Library API with PostgreSQL",
+            "main": "index.js",
+            "author": "",
+            "license": "ISC",
+            "dependencies": {
+              "pg": "^8.11.0"
+            }
+          }
+          EOL
+          
+          # 実際のPostgreSQLに接続するLambda関数
+          cat > index.js << 'EOL'
+          const { Pool } = require('pg');
+
+          // 環境変数から接続情報を取得
+          const pool = new Pool({
+            host: process.env.DB_HOST,
+            port: process.env.DB_PORT || 5432,
+            database: process.env.DB_NAME,
+            user: process.env.DB_USER,
+            password: process.env.DB_PASSWORD,
+            ssl: {
+              rejectUnauthorized: false
+            }
+          });
+
+          exports.handler = async (event) => {
+            // リクエストパスとメソッドをログに記録
+            console.log(`Request: ${event.httpMethod} ${event.resource}`);
+            
+            // CORSヘッダー
+            const headers = {
+              'Content-Type': 'application/json',
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+            };
+            
+            // OPTIONS (プリフライトリクエスト) への応答
+            if (event.httpMethod === 'OPTIONS') {
+              return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ message: 'OK' })
+              };
+            }
+            
+            try {
+              // GET /books
+              if (event.httpMethod === 'GET' && event.resource === '/books') {
+                // DB接続を使用して実際のデータを取得
+                const client = await pool.connect();
+                try {
+                  const result = await client.query('SELECT * FROM books');
+                  
+                  // APIレスポンスに適したフォーマットに変換
+                  const books = result.rows.map(row => ({
+                    id: row.id.toString(),
+                    title: row.title,
+                    author: row.author,
+                    publisher: row.publisher,
+                    publicationDate: row.publication_date ? row.publication_date.toISOString().split('T')[0] : null,
+                    isbn: row.isbn,
+                    genre: row.genre,
+                    pageCount: row.page_count,
+                    language: row.language,
+                    owner: row.owner
+                  }));
+                  
+                  return {
+                    statusCode: 200,
+                    headers,
+                    body: JSON.stringify(books)
+                  };
+                } finally {
+                  client.release();
+                }
+              }
+              
+              // 未対応のルート
+              return {
+                statusCode: 404,
+                headers,
+                body: JSON.stringify({ message: 'Not found' })
+              };
+            } catch (err) {
+              console.error('Error:', err);
+              return {
+                statusCode: 500,
+                headers,
+                body: JSON.stringify({ message: 'Internal server error', error: err.message })
+              };
+            }
+          };
+          EOL
+          
+          # NPMパッケージをインストール
+          npm install
+      
+      # CDK準備とデプロイ
+      - name: Install CDK dependencies
+        working-directory: ./infra
+        run: npm ci
+      
+      # CDKデプロイ (bootstrap処理なし)
+      - name: Deploy with CDK
+        working-directory: ./infra
+        run: npx cdk deploy --require-approval never
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'ap-northeast-1'
+          # DBの接続情報をCDKに渡す
+          DB_HOST: ${{ secrets.PROD_DB_HOST }}
+          DB_PORT: ${{ secrets.PROD_DB_PORT }}
+          DB_NAME: ${{ secrets.PROD_DB_NAME }}
+          DB_USER: ${{ secrets.PROD_DB_USER }}
+          DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+          
+      - name: Output deployment information
+        working-directory: ./infra
+        run: npx cdk output --json > ../deployment-output.json
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'ap-northeast-1'
+          
+      - name: Upload deployment output as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-output
+          path: deployment-output.json
+          retention-days: 7

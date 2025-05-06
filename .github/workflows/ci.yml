@@ -1,0 +1,208 @@
+name: CI - Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Application
+    runs-on: ubuntu-latest
+    
+    # PostgreSQLサービスコンテナを追加
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: tech_lib
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tech_lib_test
+        ports:
+          - 5432:5432
+        # ヘルスチェックを追加してPostgreSQLが起動完了するのを待つ
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+      
+      # データベースのセットアップ: 外部SQLファイルを使用
+      - name: Setup database using SQL files
+        run: |
+          # DDLの実行（テーブル構造の作成）
+          PGPASSWORD=postgres psql -h localhost -U tech_lib -d tech_lib_test -f database/ddl.sql
+          
+          # DMLの実行（初期データの挿入）
+          PGPASSWORD=postgres psql -h localhost -U tech_lib -d tech_lib_test -f database/dml.sql
+          
+          echo "Database setup completed successfully"
+      
+      # フロントエンド（Vue.js）のテスト
+      - name: Install frontend dependencies
+        working-directory: ./app
+        run: npm ci
+      
+      - name: Run frontend tests
+        working-directory: ./app
+        run: npm test
+      
+      - name: Lint frontend code
+        working-directory: ./app
+        run: npm run lint
+      
+      # バックエンドのセットアップとテスト
+      - name: Create API directory if not exists
+        run: mkdir -p api
+
+      - name: Setup API dependencies for testing
+        run: |
+          cd api
+          npm init -y
+          npm install --save-dev jest pg pg-mock supertest
+          npm install express pg
+          echo "module.exports = { preset: 'ts-jest', testEnvironment: 'node' };" > jest.config.js
+          
+      # バックエンドのサンプルAPIとテストの実装
+      - name: Create sample API and tests
+        run: |
+          cd api
+          
+          # シンプルなExpressアプリの作成
+          cat > index.js << 'EOL'
+          const express = require('express');
+          const { Pool } = require('pg');
+          
+          const app = express();
+          app.use(express.json());
+          
+          // DB接続設定
+          const pool = new Pool({
+            host: process.env.DB_HOST || 'localhost',
+            port: process.env.DB_PORT || 5432,
+            user: process.env.DB_USER || 'tech_lib',
+            password: process.env.DB_PASSWORD || 'postgres',
+            database: process.env.DB_NAME || 'tech_lib_test'
+          });
+          
+          // 図書一覧を取得するAPI
+          app.get('/books', async (req, res) => {
+            try {
+              const result = await pool.query('SELECT * FROM books');
+              res.json(result.rows);
+            } catch (err) {
+              console.error(err);
+              res.status(500).json({ error: 'Database error' });
+            }
+          });
+          
+          // サーバーのエクスポート（テスト用）
+          module.exports = app;
+          
+          // 直接実行された場合はサーバーを起動
+          if (require.main === module) {
+            const port = process.env.PORT || 3000;
+            app.listen(port, () => {
+              console.log(`Server running on port ${port}`);
+            });
+          }
+          EOL
+          
+          # APIのテストコード
+          cat > index.test.js << 'EOL'
+          const request = require('supertest');
+          const app = require('./index');
+          const { Pool } = require('pg');
+          
+          const pool = new Pool({
+            host: 'localhost',
+            port: 5432,
+            user: 'tech_lib',
+            password: 'postgres',
+            database: 'tech_lib_test'
+          });
+          
+          describe('Books API', () => {
+            // 各テスト後にコネクションを閉じる
+            afterAll(async () => {
+              await pool.end();
+            });
+            
+            it('GET /books should return all books', async () => {
+              const response = await request(app).get('/books');
+              
+              expect(response.status).toBe(200);
+              expect(response.body).toBeInstanceOf(Array);
+              expect(response.body.length).toBeGreaterThanOrEqual(2);
+              
+              // 少なくとも必須フィールドがあることを確認
+              const book = response.body[0];
+              expect(book).toHaveProperty('title');
+              expect(book).toHaveProperty('author');
+              expect(book).toHaveProperty('isbn');
+            });
+          });
+          EOL
+          
+          # package.jsonのテストスクリプトを追加
+          cat > package.json << 'EOL'
+          {
+            "name": "tech-lib-api",
+            "version": "1.0.0",
+            "description": "Tech Library API",
+            "main": "index.js",
+            "scripts": {
+              "test": "jest --forceExit",
+              "start": "node index.js"
+            },
+            "dependencies": {
+              "express": "^4.18.2",
+              "pg": "^8.11.0"
+            },
+            "devDependencies": {
+              "jest": "^29.5.0",
+              "supertest": "^6.3.3"
+            }
+          }
+          EOL
+      
+      # バックエンドAPiのテスト実行
+      - name: Test backend API with PostgreSQL
+        run: |
+          cd api
+          npm test
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_USER: tech_lib
+          DB_PASSWORD: postgres
+          DB_NAME: tech_lib_test
+      
+      # CDKのテスト
+      - name: Install CDK dependencies
+        working-directory: ./infra
+        run: npm ci
+      
+      - name: Run CDK tests
+        working-directory: ./infra
+        run: npm test
+
+      - name: CDK synthesize
+        working-directory: ./infra
+        run: npx cdk synth
+        env:
+          # テスト環境用の認証情報を使います
+          AWS_ACCESS_KEY_ID: ${{ secrets.TEST_AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.TEST_AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: 'ap-northeast-1'
