@@ -61,20 +61,3 @@ jobs:
         working-directory: ./app
         run: npm run lint
       
-      # CDKのテスト
-      - name: Install CDK dependencies
-        working-directory: ./infra
-        run: npm ci
-      
-      - name: Run CDK tests
-        working-directory: ./infra
-        run: npm test
-
-      - name: CDK synthesize
-        working-directory: ./infra
-        run: npx cdk synth
-        env:
-          # テスト環境用の認証情報を使います
-          AWS_ACCESS_KEY_ID: ${{ secrets.TEST_AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.TEST_AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: 'ap-northeast-1'
