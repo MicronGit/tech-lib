@@ -129,7 +129,11 @@ export class InfraStack extends cdk.Stack {
       environment: {
         // 必要な環境変数を定義
         STAGE: 'dev',
-        DATABASE_URL: process.env.DATABASE_URL || 'DATABASE_URL_NOT_SET',
+        // 本番環境用のデータベースURLを設定
+        // 開発時はダミーDB設定にして、モックレスポンスを返すように変更
+        DATABASE_URL: process.env.DATABASE_URL || '',
+        // DBがない場合はデモモードを有効化
+        DEMO_MODE: process.env.DATABASE_URL ? 'false' : 'true',
       },
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,

@@ -6,8 +6,11 @@ neonConfig.fetchConnectionCache = true;
 // 環境変数から接続情報を取得
 const connectionString = process.env.DATABASE_URL;
 
-// Neonサーバーレス接続
-const sql = connectionString 
+// デモモードのチェック
+const isDemoMode = process.env.DEMO_MODE === 'true';
+
+// Neonサーバーレス接続（デモモードでない場合のみ）
+const sql = connectionString && !isDemoMode && connectionString.trim() !== '' 
   ? neon(connectionString)
   : null;
 
@@ -18,8 +21,10 @@ const sql = connectionString
  * @returns クエリ結果の配列
  */
 export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
-  if (!sql) {
-    throw new Error('データベース接続情報が設定されていません');
+  // デモモードまたは接続情報が設定されていない場合
+  if (isDemoMode || !sql) {
+    console.log('データベース接続がないか、デモモードが有効です。クエリ実行をスキップ:', text);
+    return [];
   }
 
   try {
