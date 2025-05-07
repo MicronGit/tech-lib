@@ -75,9 +75,3 @@ jobs:
         working-directory: ./infra
         run: npx cdk output --json > ../deployment-output.json
           
-      - name: Upload deployment output as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: deployment-output
-          path: deployment-output.json
-          retention-days: 7
