@@ -1,14 +1,16 @@
 name: CD - Deploy to AWS
 
 on:
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
     types: [ closed ]
 
 jobs:
   deploy:
-    # Only run this job if the PR was merged (not just closed)
-    if: github.event.pull_request.merged == true
+    # Run on direct pushes to main OR when PR is merged to main
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     name: Deploy Application
     runs-on: ubuntu-latest
     
