@@ -3,11 +3,13 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "setup": "npm run install:app && npm run install:infra",
+    "setup": "npm run install:app && npm run install:infra && npm run install:api",
     "install:app": "cd app && npm install",
     "install:infra": "cd infra && npm install",
+    "install:api": "cd api && npm install",
     "build:app": "cd app && npm run build",
     "build:infra": "cd infra && npm run build",
+    "build:api": "cd api && npm run build",
     "test:infra": "cd infra && npm test"
   },
   "engines": {

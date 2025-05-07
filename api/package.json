@@ -1,0 +1,19 @@
+{
+  "name": "tech-lib-api",
+  "version": "1.0.0",
+  "description": "Tech Library API for book management",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.438.0",
+    "@neondatabase/serverless": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.119",
+    "@types/node": "^18.19.97",
+    "typescript": "^5.2.2"
+  }
+}

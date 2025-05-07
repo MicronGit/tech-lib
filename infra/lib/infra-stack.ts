@@ -48,13 +48,30 @@ export class InfraStack extends cdk.Stack {
     
     // バックエンドAPIのLambda関数を作成
     const apiFunction = new lambda.Function(this, 'TechLibApiFunction', {
-      runtime: lambda.Runtime.NODEJS_18_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../api')), // apiフォルダはあとで作成
+      runtime: lambda.Runtime.NODEJS_22_X,
+      handler: 'dist/index.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, '../../api'), {
+        bundling: {
+          image: lambda.Runtime.NODEJS_22_X.bundlingImage,
+          command: [
+            'bash', '-c', [
+              'npm install',
+              'npm run build',
+              'cp -r dist /asset-output/',
+              'cp package.json /asset-output/',
+              'cd /asset-output',
+              'npm install --production'
+            ].join(' && ')
+          ]
+        }
+      }),
       environment: {
         // 必要な環境変数を定義
         STAGE: 'dev',
+        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://user:password@neon.tech:5432/tech-lib', // Neon Postgres接続文字列
       },
+      timeout: cdk.Duration.seconds(30), // タイムアウトを30秒に設定
+      memorySize: 256, // メモリサイズを256MBに設定
     });
     
     // API Gatewayを作成してLambda関数と統合
