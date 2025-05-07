@@ -6,11 +6,56 @@ import * as origins from 'aws-cdk-lib/aws-cloudfront-origins';
 import * as s3deploy from 'aws-cdk-lib/aws-s3-deployment';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as apigateway from 'aws-cdk-lib/aws-apigateway';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as path from 'path';
+import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
+import * as fs from 'fs-extra';
+import { execSync } from 'child_process';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    // フロントエンドのビルド（GitHub ActionsとローカルCDKデプロイの両方で一元化）
+    this.buildFrontend();
+
+    // GitHub ActionsのデプロイロールをCDKで作成
+    const githubOidcProvider = new iam.OpenIdConnectProvider(this, 'GitHubOidcProvider', {
+      url: 'https://token.actions.githubusercontent.com',
+      clientIds: ['sts.amazonaws.com'],
+      thumbprints: ['6938fd4d98bab03faadb97b34396831e3780aea1'], // GitHub OIDCプロバイダーのサムプリント（2025年5月時点）
+    });
+
+    // デプロイ用のIAMロールを作成
+    const deploymentRole = new iam.Role(this, 'GitHubActionsDeploymentRole', {
+      assumedBy: new iam.WebIdentityPrincipal(
+        githubOidcProvider.openIdConnectProviderArn,
+        {
+          'StringEquals': {
+            'token.actions.githubusercontent.com:aud': 'sts.amazonaws.com'
+          },
+          'StringLike': {
+            // GitHub組織またはユーザー名とリポジトリ名を指定（例：MicronGit/tech-lib）
+            'token.actions.githubusercontent.com:sub': 'repo:MicronGit/tech-lib:*'
+          }
+        }
+      ),
+      description: 'Role assumed by GitHub Actions for deploying tech-lib application',
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonS3FullAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('CloudFrontFullAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonAPIGatewayAdministrator'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCloudFormationFullAccess'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('AWSLambda_FullAccess'),
+      ]
+    });
+
+    // ARNをCloudFormationの出力値として定義（GitHubのシークレットに設定しやすくするため）
+    new cdk.CfnOutput(this, 'GitHubActionsRoleArn', {
+      value: deploymentRole.roleArn,
+      description: 'ARN of the IAM role for GitHub Actions deployment',
+      exportName: 'GitHubActionsRoleArn',
+    });
 
     // ウェブアプリケーションのホスティング用S3バケットを作成
     const websiteBucket = new s3.Bucket(this, 'TechLibWebsiteBucket', {
@@ -31,7 +76,8 @@ export class InfraStack extends cdk.Stack {
     const distribution = new cloudfront.Distribution(this, 'TechLibDistribution', {
       defaultRootObject: 'index.html',
       defaultBehavior: {
-        origin: new origins.S3Origin(websiteBucket, { originAccessIdentity }),
+        // S3BucketOrigin.withOriginAccessControlを使用して簡潔に OAC を設定
+        origin: origins.S3BucketOrigin.withOriginAccessControl(websiteBucket),
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
@@ -46,34 +92,47 @@ export class InfraStack extends cdk.Stack {
       ],
     });
     
-    // バックエンドAPIのLambda関数を作成
-    const apiFunction = new lambda.Function(this, 'TechLibApiFunction', {
+    // バケットポリシーは自動的に設定されるため、明示的な設定は不要
+
+    // バックエンドAPIのLambda関数を作成（NodejsFunctionを使用）
+    const apiFunction = new NodejsFunction(this, 'TechLibApiFunction', {
       runtime: lambda.Runtime.NODEJS_22_X,
-      handler: 'dist/index.handler',
-      code: lambda.Code.fromAsset(path.join(__dirname, '../../api'), {
-        bundling: {
-          image: lambda.Runtime.NODEJS_22_X.bundlingImage,
-          command: [
-            'bash', '-c', [
-              'npm install',
-              'npm run build',
-              'cp -r dist /asset-output/',
-              'cp package.json /asset-output/',
-              'cd /asset-output',
-              'npm install --production'
-            ].join(' && ')
-          ]
-        }
-      }),
+      handler: 'handler',  // index.ts内のexport const handler関数を指定
+      entry: path.join(__dirname, '../../api/index.ts'),
+      // ローカルのesbuildを使用するための設定を追加
+      bundling: {
+        minify: true, 
+        sourceMap: true,
+        target: 'node22',
+        externalModules: ['aws-sdk', '@aws-sdk/*'],
+        nodeModules: [], // 必要なモジュールがあれば追加
+        commandHooks: {
+          // バンドル前に実行するコマンド
+          beforeBundling(inputDir: string, outputDir: string): string[] {
+            return [];
+          },
+          // バンドル後に実行するコマンド（API依存パッケージのコピー）
+          afterBundling(inputDir: string, outputDir: string): string[] {
+            return [
+              `cp ${inputDir}/package.json ${outputDir}`,
+              `cd ${outputDir} && npm install --production --no-package-lock`
+            ];
+          },
+          // バンドル前のプロジェクトクリーンアップコマンド
+          beforeInstall(inputDir: string, outputDir: string): string[] {
+            return [];
+          },
+        },
+        // Dockerを使用せず、ローカルのesbuildを使用
+        forceDockerBundling: false,
+      },
       environment: {
         // 必要な環境変数を定義
         STAGE: 'dev',
-        // DATABASE_URLが指定されていない場合はエラーメッセージを設定することで
-        // 明示的に設定されていないことを分かりやすくする
         DATABASE_URL: process.env.DATABASE_URL || 'DATABASE_URL_NOT_SET',
       },
-      timeout: cdk.Duration.seconds(30), // タイムアウトを30秒に設定
-      memorySize: 256, // メモリサイズを256MBに設定
+      timeout: cdk.Duration.seconds(30),
+      memorySize: 256,
     });
     
     // API Gatewayを作成してLambda関数と統合
@@ -120,6 +179,12 @@ export class InfraStack extends cdk.Stack {
       distributionPaths: ['/*'],
     });
     
+    // バケット名を出力値として追加（トラブルシューティングやローカルツール用）
+    new cdk.CfnOutput(this, 'WebsiteBucketName', {
+      value: websiteBucket.bucketName,
+      description: 'The name of the S3 bucket hosting the website',
+    });
+
     // 出力を表示
     new cdk.CfnOutput(this, 'CloudFrontURL', {
       value: `https://${distribution.distributionDomainName}`,
@@ -130,5 +195,56 @@ export class InfraStack extends cdk.Stack {
       value: api.url,
       description: 'The URL of the API Gateway',
     });
+  }
+
+  /**
+   * フロントエンドアプリケーションをビルドする
+   * ローカルとCI/CD環境の両方でシームレスに動作するように設計
+   */
+  private buildFrontend(): void {
+    const appDir = path.join(__dirname, '../../app');
+    const distDir = path.join(appDir, 'dist');
+    const packageLockFile = path.join(appDir, 'package-lock.json');
+
+    console.log('📦 フロントエンドアプリケーションを準備しています...');
+    
+    // distディレクトリが存在するか確認
+    const distExists = fs.existsSync(distDir);
+
+    try {
+      // distディレクトリが存在しない場合はビルドを実行
+      if (!distExists) {
+        console.log('🔨 フロントエンドビルドを開始します...');
+        
+        // package-lock.jsonが存在する場合はci、なければinstallを使用
+        const installCmd = fs.existsSync(packageLockFile) ? 'ci' : 'install';
+        
+        // 依存関係のインストール
+        console.log(`📥 依存関係をインストール中... (npm ${installCmd})`);
+        execSync(`npm ${installCmd}`, {
+          cwd: appDir,
+          stdio: 'inherit'
+        });
+
+        // ビルド実行
+        console.log('🏗️ フロントエンドをビルド中... (npm run build)');
+        execSync('npm run build', {
+          cwd: appDir,
+          stdio: 'inherit'
+        });
+
+        console.log('✅ フロントエンドのビルドが完了しました');
+      } else {
+        console.log('ℹ️ フロントエンドのビルドは既に存在します。ビルドをスキップします。');
+      }
+      
+      // ビルド結果の確認
+      if (!fs.existsSync(distDir) || fs.readdirSync(distDir).length === 0) {
+        throw new Error('ビルドディレクトリが空か存在しません。フロントエンドのビルドに問題がある可能性があります。');
+      }
+    } catch (error) {
+      console.error('❌ フロントエンドのビルド中にエラーが発生しました:', error);
+      throw new Error('フロントエンドのビルドに失敗しました。インフラデプロイを中止します。');
+    }
   }
 }

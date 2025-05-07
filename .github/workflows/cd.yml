@@ -37,36 +37,19 @@ jobs:
           aws-region: ap-northeast-1
           audience: sts.amazonaws.com
       
-      # フロントエンドのビルド
-      - name: Install frontend dependencies
-        working-directory: ./app
-        run: npm ci
-      
-      - name: Build frontend
-        working-directory: ./app
-        run: npm run build
-      
       # CDK準備とデプロイ
       - name: Install CDK dependencies
         working-directory: ./infra
         run: npm ci
       
       # CDKデプロイ - OIDC認証を使用
+      # ※フロントエンドのビルドとS3へのデプロイはCDK内に一元化
       - name: Deploy with CDK
         working-directory: ./infra
         run: npx cdk deploy --all --require-approval never
         env:
-          # Neon PostgreSQLの接続文字列（CDKスタックで期待されている形式）
+          # Neon PostgreSQLの接続文字列
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      
-      # S3へのフロントエンドのデプロイ
-      - name: Deploy frontend to S3
-        run: |
-          # CDK出力からS3バケット名を取得
-          S3_BUCKET=$(aws cloudformation describe-stacks --stack-name TechLibStack --query "Stacks[0].Outputs[?OutputKey=='WebsiteBucketName'].OutputValue" --output text)
-          
-          # S3バケットにビルドファイルをアップロード
-          aws s3 sync ./app/dist/ s3://$S3_BUCKET/ --delete
       
       - name: Output deployment information
         working-directory: ./infra

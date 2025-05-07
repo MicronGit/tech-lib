@@ -53,7 +53,6 @@
 
 <script lang="ts">
 import { defineComponent, ref, onMounted } from 'vue';
-import axios from 'axios';
 import type { Book } from '../types/Book';
 
 export default defineComponent({
@@ -64,7 +63,7 @@ export default defineComponent({
     const error = ref<string | null>(null);
 
     // モックデータを使用（本番環境ではAPIからデータを取得）
-    const fetchBooks = async () => {
+    const fetchBooks = () => {
       try {
         // APIが準備できるまではモックデータを使用
         // 実際のAPI実装後は以下のコードに置き換え
