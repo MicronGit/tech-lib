@@ -55,12 +55,8 @@ jobs:
         working-directory: ./infra
         run: npx cdk deploy --all --require-approval never
         env:
-          # DBの接続情報をCDKに渡す
-          DB_HOST: ${{ secrets.PROD_DB_HOST }}
-          DB_PORT: ${{ secrets.PROD_DB_PORT }}
-          DB_NAME: ${{ secrets.PROD_DB_NAME }}
-          DB_USER: ${{ secrets.PROD_DB_USER }}
-          DB_PASSWORD: ${{ secrets.PROD_DB_PASSWORD }}
+          # Neon PostgreSQLの接続文字列（CDKスタックで期待されている形式）
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
       
       # S3へのフロントエンドのデプロイ
       - name: Deploy frontend to S3
@@ -74,4 +70,3 @@ jobs:
       - name: Output deployment information
         working-directory: ./infra
         run: npx cdk output --json > ../deployment-output.json
-          

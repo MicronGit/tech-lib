@@ -68,7 +68,9 @@ export class InfraStack extends cdk.Stack {
       environment: {
         // 必要な環境変数を定義
         STAGE: 'dev',
-        DATABASE_URL: process.env.DATABASE_URL || 'postgresql://user:password@neon.tech:5432/tech-lib', // Neon Postgres接続文字列
+        // DATABASE_URLが指定されていない場合はエラーメッセージを設定することで
+        // 明示的に設定されていないことを分かりやすくする
+        DATABASE_URL: process.env.DATABASE_URL || 'DATABASE_URL_NOT_SET',
       },
       timeout: cdk.Duration.seconds(30), // タイムアウトを30秒に設定
       memorySize: 256, // メモリサイズを256MBに設定
