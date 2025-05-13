@@ -10,7 +10,19 @@
     "build:app": "cd app && npm run build",
     "build:infra": "cd infra && npm run build",
     "build:api": "cd api && npm run build",
-    "test:infra": "cd infra && npm test"
+    "test:infra": "cd infra && npm test",
+    "lint:app": "cd app && npm run lint",
+    "lint:api": "cd api && npm run lint",
+    "lint:infra": "cd infra && npm run lint",
+    "lint": "npm run lint:app && npm run lint:api && npm run lint:infra",
+    "lint:fix:app": "cd app && npm run lint:fix",
+    "lint:fix:api": "cd api && npm run lint:fix",
+    "lint:fix:infra": "cd infra && npm run lint:fix",
+    "lint:fix": "npm run lint:fix:app && npm run lint:fix:api && npm run lint:fix:infra",
+    "format:app": "cd app && npm run format",
+    "format:api": "cd api && npm run format",
+    "format:infra": "cd infra && npm run format",
+    "format": "npm run format:app && npm run format:api && npm run format:infra"
   },
   "engines": {
     "node": ">=16.0.0"

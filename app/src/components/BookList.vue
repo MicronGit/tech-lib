@@ -1,10 +1,8 @@
 <template>
   <div class="book-list">
     <h1>図書一覧</h1>
-    
-    <div v-if="loading" class="loading">
-      データを読み込み中...
-    </div>
+
+    <div v-if="loading" class="loading">データを読み込み中...</div>
     <div v-else-if="error" class="error">
       {{ error }}
     </div>
@@ -18,7 +16,10 @@
             <th>出版日</th>
             <th>
               ISBN
-              <span class="tooltip-icon" title="国際標準図書番号（International Standard Book Number）：書籍の国際的な識別番号です">
+              <span
+                class="tooltip-icon"
+                title="国際標準図書番号（International Standard Book Number）：書籍の国際的な識別番号です"
+              >
                 i
               </span>
             </th>
@@ -27,9 +28,7 @@
             <th>言語</th>
             <th>
               オーナー
-              <span class="tooltip-icon" title="この技術書を提供した人の名前です">
-                i
-              </span>
+              <span class="tooltip-icon" title="この技術書を提供した人の名前です"> i </span>
             </th>
           </tr>
         </thead>
@@ -69,7 +68,7 @@ export default defineComponent({
         // 実際のAPI実装後は以下のコードに置き換え
         // const response = await axios.get('/api/books');
         // books.value = response.data;
-        
+
         // モックデータ
         books.value = [
           {
@@ -83,7 +82,7 @@ export default defineComponent({
             pageCount: 320,
             language: '日本語',
             status: 'available',
-            owner: '鈴木雄一'
+            owner: '鈴木雄一',
           },
           {
             id: '2',
@@ -96,7 +95,7 @@ export default defineComponent({
             pageCount: 250,
             language: '日本語',
             status: 'borrowed',
-            owner: '佐藤健太'
+            owner: '佐藤健太',
           },
           {
             id: '3',
@@ -109,7 +108,7 @@ export default defineComponent({
             pageCount: 280,
             language: '日本語',
             status: 'reserved',
-            owner: '田中美咲'
+            owner: '田中美咲',
           },
           {
             id: '4',
@@ -122,7 +121,7 @@ export default defineComponent({
             pageCount: 400,
             language: '日本語',
             status: 'available',
-            owner: '伊藤拓也'
+            owner: '伊藤拓也',
           },
           {
             id: '5',
@@ -135,10 +134,10 @@ export default defineComponent({
             pageCount: 350,
             language: '日本語',
             status: 'available',
-            owner: '渡辺直樹'
-          }
+            owner: '渡辺直樹',
+          },
         ];
-        
+
         loading.value = false;
       } catch (err) {
         loading.value = false;
@@ -154,9 +153,9 @@ export default defineComponent({
     return {
       books,
       loading,
-      error
+      error,
     };
-  }
+  },
 });
 </script>
 
@@ -180,7 +179,8 @@ h1 {
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
-.book-table th, .book-table td {
+.book-table th,
+.book-table td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
@@ -205,7 +205,8 @@ h1 {
   color: #495057;
 }
 
-.loading, .error {
+.loading,
+.error {
   text-align: center;
   padding: 20px;
   font-size: 1.2em;
