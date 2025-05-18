@@ -23,7 +23,6 @@ const getBooks = async (): Promise<Book[]> => {
       created_at::text as created_at,
       updated_at::text as updated_at
     FROM books
-    ORDER BY id DESC
   `);
 };
 

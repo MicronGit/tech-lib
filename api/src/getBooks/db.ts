@@ -22,14 +22,13 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
     console.log('データベース接続情報がありません', query);
     return [];
   }
-  console.log(connectionString)
 
   try {
     let result;
 
     if (!params || params.length === 0) {
       // パラメータなしのクエリ
-    result = await sql`${query}`;
+    result = await sql`SELECT * FROM books`;
     } else {
       // パラメータ付きクエリを構築する
       // クエリ文字列とパラメータを結合して実行するためのSQL文を生成
