@@ -2,10 +2,10 @@ name: CD - Deploy to AWS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
-    types: [ closed ]
+    branches: [main]
+    types: [closed]
 
 jobs:
   deploy:
@@ -13,22 +13,22 @@ jobs:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true)
     name: Deploy Application
     runs-on: ubuntu-latest
-    
+
     # OIDC認証のためのアクセス許可を設定
     permissions:
       id-token: write
       contents: read
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'
-          cache: 'npm'
-      
+          node-version: "22"
+          cache: "npm"
+
       # AWSとのOIDC連携を設定
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -36,12 +36,12 @@ jobs:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: ap-northeast-1
           audience: sts.amazonaws.com
-      
+
       # CDK準備とデプロイ
       - name: Install CDK dependencies
         working-directory: ./infra
         run: npm ci
-      
+
       # CDKデプロイ - OIDC認証を使用
       # ※フロントエンドのビルドとS3へのデプロイはCDK内に一元化
       - name: Deploy with CDK
@@ -50,7 +50,3 @@ jobs:
         env:
           # Neon PostgreSQLの接続文字列
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      
-      - name: Output deployment information
-        working-directory: ./infra
-        run: npx cdk output --json > ../deployment-output.json
