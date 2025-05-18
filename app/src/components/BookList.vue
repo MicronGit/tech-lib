@@ -68,7 +68,7 @@ export default defineComponent({
         const response = await axios.get(
           'https://ba08thaw76.execute-api.ap-northeast-1.amazonaws.com/dev/books'
         );
-        books.value = response.data;
+        books.value = response.data.books;
 
         loading.value = false;
       } catch (err) {
