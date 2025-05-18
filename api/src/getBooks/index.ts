@@ -7,21 +7,21 @@ import { end, query } from './db';
  * @returns 図書一覧データ
  */
 const getBooks = async (): Promise<Book[]> => {
-  // 実際のデータベースからデータを取得
+  // Neon serverlessの形式に合わせてクエリを実行
   return query<Book>(`
     SELECT 
       id, 
       title, 
       author, 
       publisher, 
-      TO_CHAR(publication_date, 'YYYY-MM-DD') as publication_date,
+      publication_date::text as publication_date,
       isbn, 
       genre, 
       page_count, 
       language, 
       owner,
-      TO_CHAR(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as created_at,
-      TO_CHAR(updated_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as updated_at
+      created_at::text as created_at,
+      updated_at::text as updated_at
     FROM books
     ORDER BY id DESC
   `);
