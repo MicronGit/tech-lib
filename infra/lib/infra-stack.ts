@@ -100,7 +100,7 @@ export class InfraStack extends cdk.Stack {
     const apiFunction = new NodejsFunction(this, 'TechLibApiFunction', {
       runtime: lambda.Runtime.NODEJS_22_X,
       handler: 'handler', // index.ts内のexport const handler関数を指定
-      entry: path.join(__dirname, '../../api/index.ts'),
+      entry: path.join(__dirname, '../../api/src/getBooks/index.ts'),
       // Lambda Layer を追加
       layers: [apiLayer],
       // ローカルのesbuildを使用するための設定を追加

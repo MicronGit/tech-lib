@@ -10,9 +10,8 @@ const connectionString = process.env.DATABASE_URL;
 const isDemoMode = process.env.DEMO_MODE === 'true';
 
 // Neonサーバーレス接続（デモモードでない場合のみ）
-const sql = connectionString && !isDemoMode && connectionString.trim() !== '' 
-  ? neon(connectionString)
-  : null;
+const sql =
+  connectionString && !isDemoMode && connectionString.trim() !== '' ? neon(connectionString) : null;
 
 /**
  * DBクエリを実行するための関数
@@ -29,7 +28,7 @@ export async function query<T = any>(text: string, params?: any[]): Promise<T[]>
 
   try {
     let result;
-    
+
     if (!params || params.length === 0) {
       // パラメータなしのクエリ
       result = await sql.unsafe(text);
@@ -39,9 +38,9 @@ export async function query<T = any>(text: string, params?: any[]): Promise<T[]>
       const query = buildQueryWithParams(text, params);
       result = await sql.unsafe(query);
     }
-    
+
     // TypeScriptコンパイラのエラーを回避するため、一旦unknownにキャストしてから目的の型にキャスト
-    return (result as unknown) as T[];
+    return result as unknown as T[];
   } catch (error) {
     console.error(`クエリエラー: ${text}`, error);
     throw error;
@@ -50,19 +49,19 @@ export async function query<T = any>(text: string, params?: any[]): Promise<T[]>
 
 /**
  * パラメータ付きのクエリ文字列を構築するヘルパー関数
- * 
+ *
  * @param text SQLクエリ文字列（$1, $2などのプレースホルダーを含む）
  * @param params バインドするパラメータの配列
  * @returns パラメータが埋め込まれたSQL文
  */
 function buildQueryWithParams(text: string, params: any[]): string {
   let query = text;
-  
+
   // 各パラメータをエスケープして埋め込む
   params.forEach((param, index) => {
     const placeholder = `$${index + 1}`;
     let replacement: string;
-    
+
     // パラメータの型に応じた適切なフォーマット
     if (param === null) {
       replacement = 'NULL';
@@ -76,11 +75,11 @@ function buildQueryWithParams(text: string, params: any[]): string {
       // その他の型はそのまま文字列化
       replacement = String(param);
     }
-    
+
     // プレースホルダーを実際の値で置き換え
     query = query.replace(placeholder, replacement);
   });
-  
+
   return query;
 }
 

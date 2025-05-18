@@ -1,6 +1,6 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
-import { query, end } from './db';
-import { Book, ApiResponse } from './types';
+import { ApiResponse, Book } from '../../types';
+import { end, query } from './db';
 
 /**
  * GET /books - 図書一覧を取得するAPI
@@ -11,7 +11,7 @@ const getBooks = async (): Promise<Book[]> => {
   if (process.env.DEMO_MODE === 'true') {
     return getMockBooks();
   }
-  
+
   // 実際のデータベースからデータを取得
   return query<Book>(`
     SELECT 
@@ -50,7 +50,7 @@ const getMockBooks = (): Book[] => {
       language: '日本語',
       owner: '鈴木雄一',
       created_at: '2023-01-01T09:00:00Z',
-      updated_at: '2023-01-01T09:00:00Z'
+      updated_at: '2023-01-01T09:00:00Z',
     },
     {
       id: 2,
@@ -64,7 +64,7 @@ const getMockBooks = (): Book[] => {
       language: '日本語',
       owner: '佐藤健太',
       created_at: '2022-11-01T10:30:00Z',
-      updated_at: '2022-11-10T14:15:00Z'
+      updated_at: '2022-11-10T14:15:00Z',
     },
     {
       id: 3,
@@ -78,7 +78,7 @@ const getMockBooks = (): Book[] => {
       language: '日本語',
       owner: '田中美咲',
       created_at: '2023-03-15T08:45:00Z',
-      updated_at: '2023-03-15T08:45:00Z'
+      updated_at: '2023-03-15T08:45:00Z',
     },
     {
       id: 4,
@@ -92,7 +92,7 @@ const getMockBooks = (): Book[] => {
       language: '日本語',
       owner: '伊藤拓也',
       created_at: '2022-08-05T13:20:00Z',
-      updated_at: '2022-08-05T13:20:00Z'
+      updated_at: '2022-08-05T13:20:00Z',
     },
     {
       id: 5,
@@ -106,8 +106,8 @@ const getMockBooks = (): Book[] => {
       language: '日本語',
       owner: '渡辺直樹',
       created_at: '2023-02-20T11:10:00Z',
-      updated_at: '2023-02-25T15:30:00Z'
-    }
+      updated_at: '2023-02-25T15:30:00Z',
+    },
   ];
 };
 
@@ -115,10 +115,10 @@ const getMockBooks = (): Book[] => {
  * 標準的なCORSヘッダーを設定
  */
 const getCorsHeaders = (): Record<string, string> => ({
-  'Access-Control-Allow-Origin': '*', // 本番ではオリジンを限定
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
   'Access-Control-Allow-Methods': 'OPTIONS,GET',
-  'Content-Type': 'application/json'
+  'Content-Type': 'application/json',
 });
 
 /**
@@ -127,7 +127,7 @@ const getCorsHeaders = (): Record<string, string> => ({
 const formatResponse = (statusCode: number, data: unknown): ApiResponse => ({
   statusCode,
   headers: getCorsHeaders(),
-  body: JSON.stringify(data)
+  body: JSON.stringify(data),
 });
 
 /**
@@ -150,9 +150,9 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     return formatResponse(404, { message: 'Not Found' });
   } catch (error) {
     console.error('APIリクエストの処理中にエラーが発生しました', error);
-    return formatResponse(500, { 
+    return formatResponse(500, {
       message: 'Internal Server Error',
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
     });
   } finally {
     try {
