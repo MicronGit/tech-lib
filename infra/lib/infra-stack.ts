@@ -14,7 +14,11 @@ import * as path from 'path';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+    // ap-northeast-1 (Tokyo) リージョンを指定
+    super(scope, id, {
+      ...props,
+      env: { region: 'ap-northeast-1' },
+    });
 
     // フロントエンドのビルド（GitHub ActionsとローカルCDKデプロイの両方で一元化）
     this.buildFrontend();
