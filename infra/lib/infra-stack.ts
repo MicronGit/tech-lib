@@ -45,6 +45,7 @@ export class InfraStack extends cdk.Stack {
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSCloudFormationFullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AWSLambda_FullAccess'),
         iam.ManagedPolicy.fromAwsManagedPolicyName('AmazonSSMReadOnlyAccess'), // CDKブートストラップバージョン確認用のSSMパラメータアクセス権限
+        iam.ManagedPolicy.fromAwsManagedPolicyName('IAMFullAccess'), // IAMのフルアクセス権限
       ],
     });
 
