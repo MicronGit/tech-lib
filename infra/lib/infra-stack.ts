@@ -63,18 +63,6 @@ export class InfraStack extends cdk.Stack {
       autoDeleteObjects: true, // 開発用設定: バケット削除時にオブジェクトも削除
     });
 
-    // CloudFront Originアクセスアイデンティティを作成
-    const originAccessIdentity = new cloudfront.OriginAccessIdentity(
-      this,
-      'TechLibOriginAccessIdentity',
-      {
-        comment: 'Access to tech-lib website bucket',
-      }
-    );
-
-    // S3バケットに対するCloudFrontのアクセス権限を付与
-    websiteBucket.grantRead(originAccessIdentity);
-
     // CloudFrontディストリビューションを作成
     const distribution = new cloudfront.Distribution(this, 'TechLibDistribution', {
       defaultRootObject: 'index.html',
