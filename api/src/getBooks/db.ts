@@ -16,10 +16,10 @@ const sql =
  * @param params クエリパラメータ（オプション）
  * @returns クエリ結果の配列
  */
-export async function query<T = any>(text: string, params?: any[]): Promise<T[]> {
+export async function query<T = any>(query: string, params?: any[]): Promise<T[]> {
   // デモモードまたは接続情報が設定されていない場合
   if (!sql) {
-    console.log('データベース接続情報がありません', text);
+    console.log('データベース接続情報がありません', query);
     return [];
   }
 
@@ -28,18 +28,18 @@ export async function query<T = any>(text: string, params?: any[]): Promise<T[]>
 
     if (!params || params.length === 0) {
       // パラメータなしのクエリ
-      result = await sql.unsafe(text);
+    result = await sql`${query}`;
     } else {
       // パラメータ付きクエリを構築する
       // クエリ文字列とパラメータを結合して実行するためのSQL文を生成
-      const query = buildQueryWithParams(text, params);
-      result = await sql.unsafe(query);
+      const queryWithParams = buildQueryWithParams(query, params);
+      result = await sql`${queryWithParams}`;
     }
 
     // TypeScriptコンパイラのエラーを回避するため、一旦unknownにキャストしてから目的の型にキャスト
     return result as unknown as T[];
   } catch (error) {
-    console.error(`クエリエラー: ${text}`, error);
+    console.error(`クエリエラー: ${query}`, error);
     throw error;
   }
 }
