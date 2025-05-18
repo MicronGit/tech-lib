@@ -29,6 +29,16 @@ jobs:
           node-version: "22"
           cache: "npm"
 
+      # APIのデプロイ準備
+      - name: Install API dependencies
+        working-directory: ./api
+        run: npm ci
+
+      # Layerのデプロイ準備
+      - name: Install Layer dependencies
+        working-directory: ./api/layer
+        run: npm ci
+
       # AWSとのOIDC連携を設定
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
