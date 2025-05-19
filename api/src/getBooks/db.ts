@@ -7,8 +7,7 @@ neonConfig.fetchConnectionCache = true;
 const connectionString = process.env.DATABASE_URL;
 
 // Neonサーバーレス接続（デモモードでない場合のみ）
-const sql =
-  connectionString && connectionString.trim() !== '' ? neon(connectionString) : null;
+const sql = connectionString && connectionString.trim() !== '' ? neon(connectionString) : null;
 
 /**
  * DBクエリを実行するための関数
@@ -31,7 +30,7 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
 
     if (!params || params.length === 0) {
       // パラメータなしのクエリ
-    result = await sql`${query}`;
+      result = await sql`${sanitizedQuery}`;
     } else {
       // パラメータ付きクエリを構築する
       // クエリ文字列とパラメータを結合して実行するためのSQL文を生成
@@ -40,7 +39,7 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
     }
 
     // TypeScriptコンパイラのエラーを回避するため、一旦unknownにキャストしてから目的の型にキャスト
-    return result as unknown as T[];
+    return result as T[];
   } catch (error) {
     console.error(`クエリエラー: ${query}`, error);
     throw error;
