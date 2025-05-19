@@ -9,19 +9,19 @@ import { end, query } from './db';
 const getBooks = async (): Promise<Book[]> => {
   const sql = `
     SELECT
-      id,
-      title,
-      author,
-      publisher,
-      publication_date::text as publication_date,
-      isbn,
-      genre,
-      page_count,
-      language,
-      owner,
-      created_at::text as created_at,
-      updated_at::text as updated_at
-    FROM books
+      bk.id,
+      bk.title,
+      bk.author,
+      bk.publisher,
+      bk.publication_date::text as publication_date,
+      bk.isbn,
+      bk.genre,
+      bk.page_count,
+      bk.language,
+      bk.owner,
+      bk.created_at::text as created_at,
+      bk.updated_at::text as updated_at
+    FROM books AS bk
   `;
 
   const result = await query<Book>(sql);
