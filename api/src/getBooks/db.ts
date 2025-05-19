@@ -28,7 +28,7 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
 
     if (!params || params.length === 0) {
       // パラメータなしのクエリ
-    result = await sql`SELECT * FROM books`;
+    result = await sql`${query}`;
     } else {
       // パラメータ付きクエリを構築する
       // クエリ文字列とパラメータを結合して実行するためのSQL文を生成

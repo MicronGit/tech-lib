@@ -14,14 +14,14 @@ const getBooks = async (): Promise<Book[]> => {
       title, 
       author, 
       publisher, 
-      publication_date::text as publication_date,
+      publication_date as publication_date,
       isbn, 
       genre, 
       page_count, 
       language, 
       owner,
-      created_at::text as created_at,
-      updated_at::text as updated_at
+      created_at as created_at,
+      updated_at as updated_at
     FROM books
   `);
 };
