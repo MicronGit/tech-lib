@@ -22,8 +22,8 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
     return [];
   }
 
-  // SQLクエリに改行が含まれている場合は、改行を削除
-  const sanitizedQuery = query.replace(/\n/g, ' ').trim();
+  // SQLクエリの改行を空白に置き換え、連続する空白を1つに圧縮し、前後の空白を削除
+  const sanitizedQuery = query.replace(/\s+/g, ' ').trim();
 
   try {
     let result;
