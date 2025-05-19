@@ -34,14 +34,14 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
     } else {
       // パラメータ付きクエリを構築する
       // クエリ文字列とパラメータを結合して実行するためのSQL文を生成
-      const queryWithParams = buildQueryWithParams(query, params);
+      const queryWithParams = buildQueryWithParams(sanitizedQuery, params);
       result = await sql`${queryWithParams}`;
     }
 
     // TypeScriptコンパイラのエラーを回避するため、一旦unknownにキャストしてから目的の型にキャスト
     return result as T[];
   } catch (error) {
-    console.error(`クエリエラー: ${query}`, error);
+    console.error(`クエリエラー: ${sanitizedQuery}`, error);
     throw error;
   }
 }
