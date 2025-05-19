@@ -7,23 +7,14 @@ import { end, query } from './db';
  * @returns 図書一覧データ
  */
 const getBooks = async (): Promise<Book[]> => {
-  // Neon serverlessの形式に合わせてクエリを実行
-  return query<Book>(`
-    SELECT 
-      id, 
-      title, 
-      author, 
-      publisher, 
-      publication_date::text,
-      isbn, 
-      genre, 
-      page_count, 
-      language, 
-      owner,
-      created_at::text,
-      updated_at::text
+  const sql = `
+    SELECT
+    *
     FROM books
-  `);
+  `;
+
+  const result = await query<Book>(sql);
+  return result;
 };
 
 /**
