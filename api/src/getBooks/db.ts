@@ -17,11 +17,14 @@ const sql =
  * @returns クエリ結果の配列
  */
 export async function query<T = any>(query: string, params?: any[]): Promise<T[]> {
-  // デモモードまたは接続情報が設定されていない場合
+  // 接続情報が設定されていない場合
   if (!sql) {
     console.log('データベース接続情報がありません', query);
     return [];
   }
+
+  // SQLクエリに改行が含まれている場合は、改行を削除
+  const sanitizedQuery = query.replace(/\n/g, ' ').trim();
 
   try {
     let result;
