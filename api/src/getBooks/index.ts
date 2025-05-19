@@ -7,11 +7,7 @@ import { end, query } from './db';
  * @returns 図書一覧データ
  */
 const getBooks = async (): Promise<Book[]> => {
-  const sql = `
-    SELECT
-    *
-    FROM books
-  `;
+  const sql = `SELECT * FROM books`;
 
   const result = await query<Book>(sql);
   return result;
