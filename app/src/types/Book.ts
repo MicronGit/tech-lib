@@ -5,7 +5,6 @@ export interface Book {
   author: string;
   publisher: string;
   publicationDate: string;
-  isbn: string;
   genre: string;
   description?: string;
   pageCount: number;

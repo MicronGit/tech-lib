@@ -14,15 +14,6 @@
             <th>著者</th>
             <th>出版社</th>
             <th>出版日</th>
-            <th>
-              ISBN
-              <span
-                class="tooltip-icon"
-                title="国際標準図書番号（International Standard Book Number）：書籍の国際的な識別番号です"
-              >
-                i
-              </span>
-            </th>
             <th>ジャンル</th>
             <th>ページ数</th>
             <th>言語</th>
@@ -38,7 +29,6 @@
             <td>{{ book.author }}</td>
             <td>{{ book.publisher }}</td>
             <td>{{ book.publicationDate }}</td>
-            <td>{{ book.isbn }}</td>
             <td>{{ book.genre }}</td>
             <td>{{ book.pageCount }}</td>
             <td>{{ book.language }}</td>
@@ -62,13 +52,31 @@ export default defineComponent({
     const loading = ref(true);
     const error = ref<string | null>(null);
 
+    // APIレスポンスデータをフロントエンドの型に変換する関数
+    const convertToBookFormat = (apiBooks: any[]): Book[] => {
+      return apiBooks.map(book => ({
+        id: String(book.id),
+        title: book.title,
+        author: book.author,
+        publisher: book.publisher,
+        publicationDate: book.publication_date || '',
+        genre: book.genre || '',
+        pageCount: book.page_count || 0,
+        language: book.language || '',
+        owner: book.owner || '',
+        status: 'available',
+        description: '',
+        coverImageUrl: ''
+      }));
+    };
+
     // モックデータを使用（本番環境ではAPIからデータを取得）
     const fetchBooks = async () => {
       try {
         const response = await axios.get(
           'https://ba08thaw76.execute-api.ap-northeast-1.amazonaws.com/dev/books'
         );
-        books.value = response.data.books;
+        books.value = convertToBookFormat(response.data.books);
 
         loading.value = false;
       } catch (err) {

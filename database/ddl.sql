@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS books (
   author VARCHAR(255) NOT NULL,
   publisher VARCHAR(255) NOT NULL,
   publication_date DATE,
-  isbn VARCHAR(20) UNIQUE,
   genre VARCHAR(100),
   page_count INTEGER,
   language VARCHAR(50),
@@ -20,5 +19,4 @@ CREATE TABLE IF NOT EXISTS books (
 -- インデックスの作成
 CREATE INDEX IF NOT EXISTS idx_books_title ON books (title);
 CREATE INDEX IF NOT EXISTS idx_books_author ON books (author);
-CREATE INDEX IF NOT EXISTS idx_books_isbn ON books (isbn);
 CREATE INDEX IF NOT EXISTS idx_books_genre ON books (genre);

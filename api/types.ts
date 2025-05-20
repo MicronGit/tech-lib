@@ -8,7 +8,6 @@ export interface Book {
   author: string;
   publisher: string;
   publication_date?: string;  // YYYY-MM-DD形式
-  isbn?: string;              // 国際標準図書番号
   genre?: string;             // 本のジャンル
   page_count?: number;        // ページ数
   language?: string;          // 言語

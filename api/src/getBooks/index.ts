@@ -14,7 +14,6 @@ const getBooks = async (): Promise<Book[]> => {
       author,
       publisher,
       publication_date::text as publication_date,
-      isbn,
       genre,
       page_count,
       language,
