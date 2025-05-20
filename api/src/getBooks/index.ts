@@ -7,7 +7,22 @@ import { end, query } from './db';
  * @returns 図書一覧データ
  */
 const getBooks = async (): Promise<Book[]> => {
-  const sql = 'SELECT * FROM books';
+  const sql = `
+    SELECT
+      id,
+      title,
+      author,
+      publisher,
+      publication_date::text as publication_date,
+      isbn,
+      genre,
+      page_count,
+      language,
+      owner,
+      created_at::text as created_at,
+      updated_at::text as updated_at
+    FROM books
+  `;
 
   const result = await query<Book>(sql);
   return result;
