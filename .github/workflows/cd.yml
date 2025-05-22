@@ -52,6 +52,26 @@ jobs:
         working-directory: ./infra
         run: npm ci
 
+      # PostgreSQLクライアントをインストール
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      # DDLを実行してテーブル作成（存在しない場合のみ）
+      - name: Execute DDL script
+        run: |
+          PGPASSWORD=$(echo "${{ secrets.DATABASE_URL }}" | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p') \
+          psql "$(echo "${{ secrets.DATABASE_URL }}" | sed 's/postgresql/postgres/')" \
+          -v ON_ERROR_STOP=1 -f ./database/ddl.sql
+
+      # DMLを実行してデータをリフレッシュ
+      - name: Execute DML script
+        run: |
+          PGPASSWORD=$(echo "${{ secrets.DATABASE_URL }}" | sed -n 's/.*:\/\/[^:]*:\([^@]*\)@.*/\1/p') \
+          psql "$(echo "${{ secrets.DATABASE_URL }}" | sed 's/postgresql/postgres/')" \
+          -v ON_ERROR_STOP=1 -f ./database/dml.sql
+
       # CDKデプロイ - OIDC認証を使用
       # ※フロントエンドのビルドとS3へのデプロイはCDK内に一元化
       - name: Deploy with CDK
