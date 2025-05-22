@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 
 // @neondatabase/serverless のモック
 vi.mock('@neondatabase/serverless', () => {
@@ -26,7 +26,7 @@ describe('db module', () => {
     vi.clearAllMocks();
   });
 
-  it('should return empty array when no connection string', async () => {
+  test('should return empty array when no connection string', async () => {
     // DATABASE_URLを未設定にする
     process.env.DATABASE_URL = '';
 
@@ -37,7 +37,7 @@ describe('db module', () => {
     expect(result).toEqual([]);
   });
 
-  it('should execute query without params', async () => {
+  test('should execute query without params', async () => {
     const mockQueryResult = [{ id: 1, title: 'テスト本' }];
 
     // モックの設定
@@ -58,7 +58,7 @@ describe('db module', () => {
     expect(result).toEqual(mockQueryResult);
   });
 
-  it('should execute query with params', async () => {
+  test('should execute query with params', async () => {
     const mockQueryResult = [{ id: 1, title: '特定の本' }];
 
     // モックの設定
@@ -78,7 +78,7 @@ describe('db module', () => {
     expect(result).toEqual(mockQueryResult);
   });
 
-  it('should handle query error', async () => {
+  test('should handle query error', async () => {
     const mockError = new Error('Database error');
 
     // モックの設定
