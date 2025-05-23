@@ -10,21 +10,59 @@
       <table class="book-table">
         <thead>
           <tr>
-            <th>タイトル</th>
-            <th>著者</th>
-            <th>出版社</th>
-            <th>出版日</th>
-            <th>ジャンル</th>
-            <th>ページ数</th>
-            <th>言語</th>
-            <th>
+            <th @click="sortBy('title')" class="sortable">
+              タイトル
+              <span class="sort-icon" v-if="sortColumn === 'title'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
+            <th @click="sortBy('author')" class="sortable">
+              著者
+              <span class="sort-icon" v-if="sortColumn === 'author'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
+            <th @click="sortBy('publisher')" class="sortable">
+              出版社
+              <span class="sort-icon" v-if="sortColumn === 'publisher'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
+            <th @click="sortBy('publicationDate')" class="sortable">
+              出版日
+              <span class="sort-icon" v-if="sortColumn === 'publicationDate'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
+            <th @click="sortBy('genre')" class="sortable">
+              ジャンル
+              <span class="sort-icon" v-if="sortColumn === 'genre'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
+            <th @click="sortBy('pageCount')" class="sortable">
+              ページ数
+              <span class="sort-icon" v-if="sortColumn === 'pageCount'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
+            <th @click="sortBy('language')" class="sortable">
+              言語
+              <span class="sort-icon" v-if="sortColumn === 'language'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
+            </th>
+            <th @click="sortBy('owner')" class="sortable">
               オーナー
               <span class="tooltip-icon" title="この技術書を提供した人の名前です"> i </span>
+              <span class="sort-icon" v-if="sortColumn === 'owner'">
+                {{ sortDirection === 'asc' ? '▲' : '▼' }}
+              </span>
             </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="book in books" :key="book.id">
+          <tr v-for="book in sortedBooks" :key="book.id">
             <td class="title">{{ book.title }}</td>
             <td>{{ book.author }}</td>
             <td>{{ book.publisher }}</td>
@@ -42,7 +80,7 @@
 
 <script lang="ts">
 import axios from 'axios';
-import { defineComponent, onMounted, ref } from 'vue';
+import { computed, defineComponent, onMounted, ref } from 'vue';
 import type { Book } from '../types/Book';
 
 export default defineComponent({
@@ -51,10 +89,12 @@ export default defineComponent({
     const books = ref<Book[]>([]);
     const loading = ref(true);
     const error = ref<string | null>(null);
+    const sortColumn = ref<keyof Book>('title'); // デフォルトでタイトルでソート
+    const sortDirection = ref<'asc' | 'desc'>('asc'); // デフォルトは昇順
 
     // APIレスポンスデータをフロントエンドの型に変換する関数
     const convertToBookFormat = (apiBooks: any[]): Book[] => {
-      return apiBooks.map(book => ({
+      return apiBooks.map((book) => ({
         id: String(book.id),
         title: book.title,
         author: book.author,
@@ -66,9 +106,44 @@ export default defineComponent({
         owner: book.owner || '',
         status: 'available',
         description: '',
-        coverImageUrl: ''
+        coverImageUrl: '',
       }));
     };
+
+    // ソート関数
+    const sortBy = (column: keyof Book) => {
+      // 同じカラムをクリックした場合は昇順/降順を切り替え
+      if (sortColumn.value === column) {
+        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
+      } else {
+        // 異なるカラムの場合は、そのカラムで昇順ソート
+        sortColumn.value = column;
+        sortDirection.value = 'asc';
+      }
+    };
+
+    // ソート済みの書籍リストを計算
+    const sortedBooks = computed(() => {
+      const sortedArray = [...books.value];
+
+      return sortedArray.sort((a, b) => {
+        let valueA = a[sortColumn.value];
+        let valueB = b[sortColumn.value];
+
+        // 数値型の場合は数値として比較
+        if (sortColumn.value === 'pageCount') {
+          valueA = Number(valueA);
+          valueB = Number(valueB);
+          return sortDirection.value === 'asc' ? valueA - valueB : valueB - valueA;
+        }
+
+        // 文字列の場合（デフォルト）
+        // 日本語を考慮した比較
+        return sortDirection.value === 'asc'
+          ? String(valueA).localeCompare(String(valueB), 'ja')
+          : String(valueB).localeCompare(String(valueA), 'ja');
+      });
+    });
 
     // モックデータを使用（本番環境ではAPIからデータを取得）
     const fetchBooks = async () => {
@@ -94,6 +169,10 @@ export default defineComponent({
       books,
       loading,
       error,
+      sortColumn,
+      sortDirection,
+      sortBy,
+      sortedBooks,
     };
   },
 });
@@ -130,6 +209,22 @@ h1 {
   background-color: #f8f9fa;
   color: #333;
   font-weight: bold;
+}
+
+.book-table th.sortable {
+  cursor: pointer;
+  position: relative;
+  padding-right: 25px; /* ソートアイコン用の余白 */
+}
+
+.book-table th.sortable:hover {
+  background-color: #e9ecef;
+}
+
+.sort-icon {
+  position: absolute;
+  right: 8px;
+  font-size: 12px;
 }
 
 .book-table tbody tr:hover {
