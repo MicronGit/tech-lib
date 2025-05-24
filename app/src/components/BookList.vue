@@ -7,54 +7,66 @@
       {{ error }}
     </div>
     <div v-else>
+      <div class="search-box">
+        <input
+          type="text"
+          v-model="searchQuery"
+          class="search-input"
+          placeholder="タイトルで検索..."
+        />
+        <span v-if="searchQuery" class="search-clear" @click="clearSearch">✕</span>
+      </div>
       <table class="book-table">
         <thead>
           <tr>
-            <th @click="sortBy('title')" class="sortable">
+            <th @click="sortBy('title')" class="sortable" style="width: 22%">
               タイトル
               <span class="sort-icon" v-if="sortColumn === 'title'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
             </th>
-            <th @click="sortBy('author')" class="sortable">
+            <th @click="sortBy('author')" class="sortable" style="width: 15%">
               著者
               <span class="sort-icon" v-if="sortColumn === 'author'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
             </th>
-            <th @click="sortBy('publisher')" class="sortable">
+            <th @click="sortBy('publisher')" class="sortable" style="width: 15%">
               出版社
               <span class="sort-icon" v-if="sortColumn === 'publisher'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
             </th>
-            <th @click="sortBy('publicationDate')" class="sortable">
+            <th @click="sortBy('publicationDate')" class="sortable" style="width: 10%">
               出版日
               <span class="sort-icon" v-if="sortColumn === 'publicationDate'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
             </th>
-            <th @click="sortBy('genre')" class="sortable">
+            <th @click="sortBy('genre')" class="sortable" style="width: 10%">
               ジャンル
               <span class="sort-icon" v-if="sortColumn === 'genre'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
             </th>
-            <th @click="sortBy('pageCount')" class="sortable">
+            <th @click="sortBy('pageCount')" class="sortable" style="width: 8%">
               ページ数
               <span class="sort-icon" v-if="sortColumn === 'pageCount'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
             </th>
-            <th @click="sortBy('language')" class="sortable">
+            <th @click="sortBy('language')" class="sortable" style="width: 8%">
               言語
               <span class="sort-icon" v-if="sortColumn === 'language'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
             </th>
-            <th @click="sortBy('owner')" class="sortable">
+            <th @click="sortBy('owner')" class="sortable" style="width: 12%">
               オーナー
-              <span class="tooltip-icon" title="この技術書を提供した人の名前です"> i </span>
+              <div class="tooltip-container">
+                <span class="tooltip-icon">i</span>
+                <span class="tooltip-text">この技術書を提供した人の名前です</span>
+              </div>
               <span class="sort-icon" v-if="sortColumn === 'owner'">
                 {{ sortDirection === 'asc' ? '▲' : '▼' }}
               </span>
@@ -62,7 +74,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="book in sortedBooks" :key="book.id">
+          <tr v-for="book in filteredAndSortedBooks" :key="book.id">
             <td class="title">{{ book.title }}</td>
             <td>{{ book.author }}</td>
             <td>{{ book.publisher }}</td>
@@ -74,6 +86,9 @@
           </tr>
         </tbody>
       </table>
+      <div v-if="filteredAndSortedBooks.length === 0" class="no-results">
+        検索条件に一致する図書がありません
+      </div>
     </div>
   </div>
 </template>
@@ -91,6 +106,7 @@ export default defineComponent({
     const error = ref<string | null>(null);
     const sortColumn = ref<keyof Book>('title'); // デフォルトでタイトルでソート
     const sortDirection = ref<'asc' | 'desc'>('asc'); // デフォルトは昇順
+    const searchQuery = ref(''); // 検索クエリ
 
     // APIレスポンスデータをフロントエンドの型に変換する関数
     const convertToBookFormat = (apiBooks: any[]): Book[] => {
@@ -110,6 +126,11 @@ export default defineComponent({
       }));
     };
 
+    // 検索クエリをクリア
+    const clearSearch = () => {
+      searchQuery.value = '';
+    };
+
     // ソート関数
     const sortBy = (column: keyof Book) => {
       // 同じカラムをクリックした場合は昇順/降順を切り替え
@@ -122,11 +143,21 @@ export default defineComponent({
       }
     };
 
-    // ソート済みの書籍リストを計算
-    const sortedBooks = computed(() => {
-      const sortedArray = [...books.value];
+    // 検索フィルター適用済みの書籍リスト
+    const filteredBooks = computed(() => {
+      if (!searchQuery.value) {
+        return books.value;
+      }
 
-      return sortedArray.sort((a, b) => {
+      const query = searchQuery.value.toLowerCase();
+      return books.value.filter((book) => book.title.toLowerCase().includes(query));
+    });
+
+    // フィルタリングとソートを両方適用した最終的な書籍リスト
+    const filteredAndSortedBooks = computed(() => {
+      const filtered = filteredBooks.value;
+
+      return filtered.sort((a, b) => {
         let valueA = a[sortColumn.value];
         let valueB = b[sortColumn.value];
 
@@ -138,7 +169,6 @@ export default defineComponent({
         }
 
         // 文字列の場合（デフォルト）
-        // 日本語を考慮した比較
         return sortDirection.value === 'asc'
           ? String(valueA).localeCompare(String(valueB), 'ja')
           : String(valueB).localeCompare(String(valueA), 'ja');
@@ -172,7 +202,9 @@ export default defineComponent({
       sortColumn,
       sortDirection,
       sortBy,
-      sortedBooks,
+      searchQuery,
+      clearSearch,
+      filteredAndSortedBooks,
     };
   },
 });
@@ -180,9 +212,10 @@ export default defineComponent({
 
 <style scoped>
 .book-list {
-  max-width: 1200px;
+  width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 h1 {
@@ -191,11 +224,60 @@ h1 {
   margin-bottom: 30px;
 }
 
+.search-box {
+  position: relative;
+  margin-bottom: 20px;
+  width: 300px;
+  float: left;
+}
+
+.search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #333;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: white;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.search-input::placeholder {
+  color: #999;
+  opacity: 1;
+}
+
+.search-input:focus {
+  border-color: #666;
+  outline: 0;
+  box-shadow: 0 0 0 0.1rem rgba(0, 0, 0, 0.2);
+}
+
+.search-clear {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #6c757d;
+  font-size: 14px;
+  background: transparent;
+  border: none;
+  padding: 3px;
+}
+
+.search-clear:hover {
+  color: #343a40;
+}
+
 .book-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   margin-top: 20px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  clear: both;
 }
 
 .book-table th,
@@ -203,6 +285,9 @@ h1 {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #ddd;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .book-table th {
@@ -251,6 +336,19 @@ h1 {
   color: #dc3545;
 }
 
+.no-results {
+  text-align: center;
+  padding: 20px;
+  color: #6c757d;
+  font-style: italic;
+}
+
+.tooltip-container {
+  position: relative;
+  display: inline-block;
+  margin-left: 5px;
+}
+
 .tooltip-icon {
   display: inline-flex;
   align-items: center;
@@ -262,42 +360,44 @@ h1 {
   color: white;
   font-size: 12px;
   font-weight: bold;
-  margin-left: 5px;
   cursor: help;
-  position: relative;
 }
 
-.tooltip-icon:hover::after {
-  content: attr(title);
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
+.tooltip-text {
+  visibility: hidden;
+  width: 200px;
   background-color: #333;
   color: white;
+  text-align: center;
   padding: 8px 12px;
   border-radius: 4px;
+  position: absolute;
+  z-index: 10;
+  top: -10px;
+  left: 25px;
+  opacity: 0;
+  transition: opacity 0.3s;
   font-weight: normal;
   font-style: normal;
-  white-space: normal; /* テキストを折り返せるようにする */
-  z-index: 10;
-  margin-top: 5px;
   font-size: 12px;
-  line-height: 1.4; /* 行間を適切に設定 */
+  line-height: 1.4;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  width: max-content;
-  max-width: 300px; /* 最大幅を広げる */
-  text-align: center; /* 中央揃え */
+  white-space: normal;
 }
 
-.tooltip-icon:hover::before {
+.tooltip-text::after {
   content: '';
   position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-bottom-color: #333;
-  z-index: 10;
+  top: 15px;
+  right: 100%;
+  margin-top: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #333 transparent transparent;
+}
+
+.tooltip-container:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
 }
 </style>
