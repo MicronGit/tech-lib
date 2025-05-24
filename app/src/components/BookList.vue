@@ -3,74 +3,92 @@
     <h1>図書一覧</h1>
 
     <div v-if="loading" class="loading">データを読み込み中...</div>
-    <div v-else-if="error" class="error">
-      {{ error }}
-    </div>
+    <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
-      <div class="search-box">
-        <input
-          type="text"
-          v-model="searchQuery"
-          class="search-input"
-          placeholder="タイトルで検索..."
-        />
-        <span v-if="searchQuery" class="search-clear" @click="clearSearch">✕</span>
-      </div>
+      <SearchBox v-model="searchQuery" placeholder="タイトルで検索..." @clear="clearSearch" />
       <table class="book-table">
         <thead>
           <tr>
-            <th @click="sortBy('title')" class="sortable" style="width: 22%">
+            <SortableTableHeader
+              column="title"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="22%"
+              @sort="sortBy"
+            >
               タイトル
-              <span class="sort-icon" v-if="sortColumn === 'title'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th @click="sortBy('author')" class="sortable" style="width: 15%">
+            </SortableTableHeader>
+
+            <SortableTableHeader
+              column="author"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="15%"
+              @sort="sortBy"
+            >
               著者
-              <span class="sort-icon" v-if="sortColumn === 'author'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th @click="sortBy('publisher')" class="sortable" style="width: 15%">
+            </SortableTableHeader>
+
+            <SortableTableHeader
+              column="publisher"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="15%"
+              @sort="sortBy"
+            >
               出版社
-              <span class="sort-icon" v-if="sortColumn === 'publisher'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th @click="sortBy('publicationDate')" class="sortable" style="width: 10%">
+            </SortableTableHeader>
+
+            <SortableTableHeader
+              column="publicationDate"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="10%"
+              @sort="sortBy"
+            >
               出版日
-              <span class="sort-icon" v-if="sortColumn === 'publicationDate'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th @click="sortBy('genre')" class="sortable" style="width: 10%">
+            </SortableTableHeader>
+
+            <SortableTableHeader
+              column="genre"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="10%"
+              @sort="sortBy"
+            >
               ジャンル
-              <span class="sort-icon" v-if="sortColumn === 'genre'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th @click="sortBy('pageCount')" class="sortable" style="width: 8%">
+            </SortableTableHeader>
+
+            <SortableTableHeader
+              column="pageCount"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="8%"
+              @sort="sortBy"
+            >
               ページ数
-              <span class="sort-icon" v-if="sortColumn === 'pageCount'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th @click="sortBy('language')" class="sortable" style="width: 8%">
+            </SortableTableHeader>
+
+            <SortableTableHeader
+              column="language"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="8%"
+              @sort="sortBy"
+            >
               言語
-              <span class="sort-icon" v-if="sortColumn === 'language'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
-            <th @click="sortBy('owner')" class="sortable" style="width: 12%">
+            </SortableTableHeader>
+
+            <SortableTableHeader
+              column="owner"
+              :currentSortColumn="sortColumn"
+              :sortDirection="sortDirection"
+              width="12%"
+              @sort="sortBy"
+            >
               オーナー
-              <div class="tooltip-container">
-                <span class="tooltip-icon">i</span>
-                <span class="tooltip-text">この技術書を提供した人の名前です</span>
-              </div>
-              <span class="sort-icon" v-if="sortColumn === 'owner'">
-                {{ sortDirection === 'asc' ? '▲' : '▼' }}
-              </span>
-            </th>
+              <Tooltip text="この技術書を提供した人の名前です" />
+            </SortableTableHeader>
           </tr>
         </thead>
         <tbody>
@@ -94,69 +112,42 @@
 </template>
 
 <script lang="ts">
-import axios from 'axios';
 import { computed, defineComponent, onMounted, ref } from 'vue';
+import { useSearchableData } from '../composables/useSearchableData';
+import { useSortableData } from '../composables/useSortableData';
+import { fetchBooks } from '../services/bookService';
 import type { Book } from '../types/Book';
+import SearchBox from './common/SearchBox.vue';
+import SortableTableHeader from './common/SortableTableHeader.vue';
+import Tooltip from './common/Tooltip.vue';
 
 export default defineComponent({
   name: 'BookList',
+  components: {
+    SearchBox,
+    SortableTableHeader,
+    Tooltip,
+  },
   setup() {
     const books = ref<Book[]>([]);
     const loading = ref(true);
     const error = ref<string | null>(null);
-    const sortColumn = ref<keyof Book>('title'); // デフォルトでタイトルでソート
-    const sortDirection = ref<'asc' | 'desc'>('asc'); // デフォルトは昇順
-    const searchQuery = ref(''); // 検索クエリ
 
-    // APIレスポンスデータをフロントエンドの型に変換する関数
-    const convertToBookFormat = (apiBooks: any[]): Book[] => {
-      return apiBooks.map((book) => ({
-        id: String(book.id),
-        title: book.title,
-        author: book.author,
-        publisher: book.publisher,
-        publicationDate: book.publication_date || '',
-        genre: book.genre || '',
-        pageCount: book.page_count || 0,
-        language: book.language || '',
-        owner: book.owner || '',
-        status: 'available',
-        description: '',
-        coverImageUrl: '',
-      }));
-    };
+    // ソート機能の設定
+    const { sortColumn, sortDirection, sortBy } = useSortableData<Book>(books, 'title');
 
-    // 検索クエリをクリア
-    const clearSearch = () => {
-      searchQuery.value = '';
-    };
-
-    // ソート関数
-    const sortBy = (column: keyof Book) => {
-      // 同じカラムをクリックした場合は昇順/降順を切り替え
-      if (sortColumn.value === column) {
-        sortDirection.value = sortDirection.value === 'asc' ? 'desc' : 'asc';
-      } else {
-        // 異なるカラムの場合は、そのカラムで昇順ソート
-        sortColumn.value = column;
-        sortDirection.value = 'asc';
-      }
-    };
-
-    // 検索フィルター適用済みの書籍リスト
-    const filteredBooks = computed(() => {
-      if (!searchQuery.value) {
-        return books.value;
-      }
-
-      const query = searchQuery.value.toLowerCase();
-      return books.value.filter((book) => book.title.toLowerCase().includes(query));
-    });
+    // 検索機能の設定
+    const { searchQuery, clearSearch } = useSearchableData<Book>(books, 'title');
 
     // フィルタリングとソートを両方適用した最終的な書籍リスト
     const filteredAndSortedBooks = computed(() => {
-      const filtered = filteredBooks.value;
+      // 現在の検索クエリに基づくフィルタリング
+      const filtered = books.value.filter((book) => {
+        if (!searchQuery.value) return true;
+        return book.title.toLowerCase().includes(searchQuery.value.toLowerCase());
+      });
 
+      // フィルタリング結果にソートを適用
       return filtered.sort((a, b) => {
         let valueA = a[sortColumn.value];
         let valueB = b[sortColumn.value];
@@ -175,24 +166,20 @@ export default defineComponent({
       });
     });
 
-    // モックデータを使用（本番環境ではAPIからデータを取得）
-    const fetchBooks = async () => {
+    // データの取得
+    const loadBooks = async () => {
       try {
-        const response = await axios.get(
-          'https://ba08thaw76.execute-api.ap-northeast-1.amazonaws.com/dev/books'
-        );
-        books.value = convertToBookFormat(response.data.books);
-
+        books.value = await fetchBooks();
         loading.value = false;
       } catch (err) {
         loading.value = false;
         error.value = 'データの取得に失敗しました。';
-        console.error('Error fetching books:', err);
+        console.error('Error loading books:', err);
       }
     };
 
     onMounted(() => {
-      fetchBooks();
+      loadBooks();
     });
 
     return {
@@ -224,53 +211,6 @@ h1 {
   margin-bottom: 30px;
 }
 
-.search-box {
-  position: relative;
-  margin-bottom: 20px;
-  width: 300px;
-  float: left;
-}
-
-.search-input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #333;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: white;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
-}
-
-.search-input::placeholder {
-  color: #999;
-  opacity: 1;
-}
-
-.search-input:focus {
-  border-color: #666;
-  outline: 0;
-  box-shadow: 0 0 0 0.1rem rgba(0, 0, 0, 0.2);
-}
-
-.search-clear {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  cursor: pointer;
-  color: #6c757d;
-  font-size: 14px;
-  background: transparent;
-  border: none;
-  padding: 3px;
-}
-
-.search-clear:hover {
-  color: #343a40;
-}
-
 .book-table {
   width: 100%;
   table-layout: fixed;
@@ -280,7 +220,6 @@ h1 {
   clear: both;
 }
 
-.book-table th,
 .book-table td {
   padding: 12px 15px;
   text-align: left;
@@ -288,28 +227,6 @@ h1 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.book-table th {
-  background-color: #f8f9fa;
-  color: #333;
-  font-weight: bold;
-}
-
-.book-table th.sortable {
-  cursor: pointer;
-  position: relative;
-  padding-right: 25px; /* ソートアイコン用の余白 */
-}
-
-.book-table th.sortable:hover {
-  background-color: #e9ecef;
-}
-
-.sort-icon {
-  position: absolute;
-  right: 8px;
-  font-size: 12px;
 }
 
 .book-table tbody tr:hover {
@@ -341,63 +258,5 @@ h1 {
   padding: 20px;
   color: #6c757d;
   font-style: italic;
-}
-
-.tooltip-container {
-  position: relative;
-  display: inline-block;
-  margin-left: 5px;
-}
-
-.tooltip-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background-color: #6c757d;
-  color: white;
-  font-size: 12px;
-  font-weight: bold;
-  cursor: help;
-}
-
-.tooltip-text {
-  visibility: hidden;
-  width: 200px;
-  background-color: #333;
-  color: white;
-  text-align: center;
-  padding: 8px 12px;
-  border-radius: 4px;
-  position: absolute;
-  z-index: 10;
-  top: -10px;
-  left: 25px;
-  opacity: 0;
-  transition: opacity 0.3s;
-  font-weight: normal;
-  font-style: normal;
-  font-size: 12px;
-  line-height: 1.4;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  white-space: normal;
-}
-
-.tooltip-text::after {
-  content: '';
-  position: absolute;
-  top: 15px;
-  right: 100%;
-  margin-top: -5px;
-  border-width: 5px;
-  border-style: solid;
-  border-color: transparent #333 transparent transparent;
-}
-
-.tooltip-container:hover .tooltip-text {
-  visibility: visible;
-  opacity: 1;
 }
 </style>
