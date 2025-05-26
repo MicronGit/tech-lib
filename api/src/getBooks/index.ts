@@ -28,12 +28,71 @@ const getBooks = async (): Promise<Book[]> => {
 };
 
 /**
+ * POST /books - 新しい図書を登録するAPI
+ * @param book 登録する図書データ
+ * @returns 登録された図書データ
+ */
+const addBook = async (book: Partial<Book>): Promise<Book> => {
+  const { title, author, publisher, publication_date, genre, page_count, language, owner } = book;
+
+  // 必須項目のバリデーション
+  if (!title || !author || !publisher) {
+    throw new Error('必須項目（タイトル、著者、出版社）が入力されていません');
+  }
+
+  const sql = `
+    INSERT INTO books (
+      title,
+      author,
+      publisher,
+      publication_date,
+      genre,
+      page_count,
+      language,
+      owner
+    ) VALUES (
+      $1, $2, $3, $4, $5, $6, $7, $8
+    )
+    RETURNING
+      id,
+      title,
+      author,
+      publisher,
+      publication_date::text as publication_date,
+      genre,
+      page_count,
+      language,
+      owner,
+      created_at::text as created_at,
+      updated_at::text as updated_at
+  `;
+
+  const params = [
+    title,
+    author,
+    publisher,
+    publication_date || null,
+    genre || null,
+    page_count || null,
+    language || null,
+    owner || null,
+  ];
+
+  const result = await query<Book>(sql, params);
+  if (result.length === 0) {
+    throw new Error('図書の登録に失敗しました');
+  }
+
+  return result[0];
+};
+
+/**
  * 標準的なCORSヘッダーを設定
  */
 const getCorsHeaders = (): Record<string, string> => ({
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'OPTIONS,GET',
+  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
   'Content-Type': 'application/json',
 });
 
@@ -60,6 +119,24 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     if (event.resource === '/books' && event.httpMethod === 'GET') {
       const books = await getBooks();
       return formatResponse(200, { books });
+    }
+
+    // 図書登録APIの処理
+    if (event.resource === '/books' && event.httpMethod === 'POST') {
+      if (!event.body) {
+        return formatResponse(400, { message: 'リクエストボディが必要です' });
+      }
+
+      try {
+        const bookData = JSON.parse(event.body);
+        const newBook = await addBook(bookData);
+        return formatResponse(201, { message: '図書が正常に登録されました', id: newBook.id });
+      } catch (parseError) {
+        return formatResponse(400, {
+          message: 'リクエストボディの解析に失敗しました',
+          error: parseError instanceof Error ? parseError.message : String(parseError),
+        });
+      }
     }
 
     // 対応していないエンドポイントの場合

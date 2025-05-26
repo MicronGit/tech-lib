@@ -144,16 +144,16 @@ export class InfraStack extends cdk.Stack {
     // API Gatewayのルートリソースとメソッドを設定
     const booksResource = api.root.addResource('books');
 
-    // GET /books - 図書一覧を取得するAPIのみを実装
+    // GET /books - 図書一覧を取得する
     booksResource.addMethod('GET', new apigateway.LambdaIntegration(apiFunction));
+
+    // POST /books - 図書を登録する
+    booksResource.addMethod('POST', new apigateway.LambdaIntegration(apiFunction));
 
     // 以下のAPIエンドポイントは現時点では不要なためコメントアウト
     // // GET /books/{id}
     // const bookResource = booksResource.addResource('{id}');
     // bookResource.addMethod('GET', new apigateway.LambdaIntegration(apiFunction));
-    //
-    // // POST /books
-    // booksResource.addMethod('POST', new apigateway.LambdaIntegration(apiFunction));
     //
     // // PUT /books/{id}
     // bookResource.addMethod('PUT', new apigateway.LambdaIntegration(apiFunction));

@@ -30,3 +30,31 @@ export function convertToBookFormat(apiBooks: any[]): Book[] {
     coverImageUrl: '',
   }));
 }
+
+// 図書登録用のAPIメソッド
+export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
+  try {
+    // APIにポストするためのデータ形式に変換
+    const apiBook = {
+      title: book.title,
+      author: book.author,
+      publisher: book.publisher,
+      publication_date: book.publicationDate,
+      genre: book.genre,
+      page_count: book.pageCount,
+      language: book.language,
+      owner: book.owner,
+      status: book.status,
+    };
+
+    const response = await axios.post(API_URL, apiBook);
+    // レスポンスから登録された図書データを取得
+    return {
+      id: String(response.data.id),
+      ...book,
+    };
+  } catch (error) {
+    console.error('Error adding book:', error);
+    throw error;
+  }
+}

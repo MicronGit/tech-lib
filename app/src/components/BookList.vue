@@ -169,6 +169,7 @@ export default defineComponent({
     // データの取得
     const loadBooks = async () => {
       try {
+        loading.value = true;
         books.value = await fetchBooks();
         loading.value = false;
       } catch (err) {
@@ -176,6 +177,11 @@ export default defineComponent({
         error.value = 'データの取得に失敗しました。';
         console.error('Error loading books:', err);
       }
+    };
+
+    // データを再読み込みするメソッドを追加
+    const refreshBooks = () => {
+      loadBooks();
     };
 
     onMounted(() => {
@@ -192,6 +198,7 @@ export default defineComponent({
       searchQuery,
       clearSearch,
       filteredAndSortedBooks,
+      refreshBooks,
     };
   },
 });
