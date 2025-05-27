@@ -28,14 +28,12 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
   try {
     let result;
 
+    // パラメータ化クエリを使用して安全にクエリを実行
     if (!params || params.length === 0) {
-      // パラメータなしのクエリ
       result = await sql.query(sanitizedQuery);
     } else {
-      // パラメータ付きクエリを構築する
-      // クエリ文字列とパラメータを結合して実行するためのSQL文を生成
-      const queryWithParams = buildQueryWithParams(sanitizedQuery, params);
-      result = await sql.query(queryWithParams);
+      // Neonのパラメータ化クエリを使用（$1, $2などのプレースホルダーをそのまま使用）
+      result = await sql.query(sanitizedQuery, params);
     }
 
     // TypeScriptコンパイラのエラーを回避するため、一旦unknownにキャストしてから目的の型にキャスト
@@ -44,42 +42,6 @@ export async function query<T = any>(query: string, params?: any[]): Promise<T[]
     console.error(`クエリエラー: ${sanitizedQuery}`, error);
     throw error;
   }
-}
-
-/**
- * パラメータ付きのクエリ文字列を構築するヘルパー関数
- *
- * @param text SQLクエリ文字列（$1, $2などのプレースホルダーを含む）
- * @param params バインドするパラメータの配列
- * @returns パラメータが埋め込まれたSQL文
- */
-function buildQueryWithParams(text: string, params: any[]): string {
-  let query = text;
-
-  // 各パラメータをエスケープして埋め込む
-  params.forEach((param, index) => {
-    const placeholder = `$${index + 1}`;
-    let replacement: string;
-
-    // パラメータの型に応じた適切なフォーマット
-    if (param === null) {
-      replacement = 'NULL';
-    } else if (typeof param === 'string') {
-      // 文字列の場合はエスケープして引用符で囲む
-      replacement = `'${param.replace(/'/g, "''")}'`;
-    } else if (param instanceof Date) {
-      // 日付型はISO文字列に変換
-      replacement = `'${param.toISOString()}'`;
-    } else {
-      // その他の型はそのまま文字列化
-      replacement = String(param);
-    }
-
-    // プレースホルダーを実際の値で置き換え
-    query = query.replace(placeholder, replacement);
-  });
-
-  return query;
 }
 
 /**
