@@ -52,12 +52,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   background-color: #f8f9fa;
+  width: 100%;
+  min-height: 100vh;
 }
 
 .app-container {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
 }
 
 .app-header {

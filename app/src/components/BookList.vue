@@ -206,7 +206,8 @@ export default defineComponent({
 
 <style scoped>
 .book-list {
-  width: 1200px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
   box-sizing: border-box;
@@ -225,6 +226,7 @@ h1 {
   margin-top: 20px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
   clear: both;
+  overflow-x: auto;
 }
 
 .book-table td {
@@ -265,5 +267,18 @@ h1 {
   padding: 20px;
   color: #6c757d;
   font-style: italic;
+}
+
+/* テーブルコンテナを追加してスクロール可能にする */
+@media screen and (max-width: 1200px) {
+  .book-list {
+    padding: 10px;
+  }
+
+  .book-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
 }
 </style>
