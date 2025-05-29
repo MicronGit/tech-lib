@@ -111,6 +111,7 @@ export class InfraStack extends cdk.Stack {
           '@aws-sdk/*',
           // Lambda Layer で提供される依存関係も外部モジュールとして指定
           '@aws-sdk/client-secrets-manager',
+          '@aws-sdk/client-bedrock-runtime',
         ],
         nodeModules: [], // 必要なモジュールがあれば追加
         forceDockerBundling: false, // Dockerを使用せずにビルド

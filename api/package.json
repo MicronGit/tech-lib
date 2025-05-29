@@ -11,12 +11,14 @@
     "test:ui": "vitest --ui",
     "lint": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint --ext .js,.ts .",
     "lint:fix": "cross-env ESLINT_USE_FLAT_CONFIG=false eslint --ext .js,.ts . --fix",
-    "format": "prettier --write \"**/*.{js,ts}\""
+    "format": "prettier --write \"**/*.{js,ts}\"",
+    "sync-layer": "cd .. && bash scripts/sync-layer-packages.sh"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.0.0"
   },
   "devDependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.523.0",
     "@aws-sdk/client-secrets-manager": "^3.438.0",
     "@eslint/js": "^9.26.0",
     "@types/aws-lambda": "^8.10.119",
