@@ -29,8 +29,7 @@ export default defineComponent({
       type: String,
       required: true,
     },
-  },
-  setup(props, { slots }) {
+  },  setup(_props, { slots }) {
     const hasFooter = computed(() => !!slots.footer);
 
     return {
