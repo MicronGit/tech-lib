@@ -27,6 +27,7 @@ export function convertToBookFormat(apiBooks: any[]): Book[] {
     owner: book.owner || '',
     status: 'available',
     description: '',
+    descriptionByAi: book.description_by_ai || '',
     coverImageUrl: '',
   }));
 }
