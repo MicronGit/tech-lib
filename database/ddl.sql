@@ -1,8 +1,11 @@
 -- ddl.sql
 -- 図書管理アプリケーションのデータベーススキーマ定義
 
+-- テーブルが存在する場合は一旦削除して再作成
+DROP TABLE IF EXISTS books;
+
 -- booksテーブル: 図書情報を格納するテーブル
-CREATE TABLE IF NOT EXISTS books (
+CREATE TABLE books (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
   author VARCHAR(255) NOT NULL,
@@ -18,6 +21,6 @@ CREATE TABLE IF NOT EXISTS books (
 );
 
 -- インデックスの作成
-CREATE INDEX IF NOT EXISTS idx_books_title ON books (title);
-CREATE INDEX IF NOT EXISTS idx_books_author ON books (author);
-CREATE INDEX IF NOT EXISTS idx_books_genre ON books (genre);
+CREATE INDEX idx_books_title ON books (title);
+CREATE INDEX idx_books_author ON books (author);
+CREATE INDEX idx_books_genre ON books (genre);
