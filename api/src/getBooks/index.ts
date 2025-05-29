@@ -87,12 +87,44 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
 };
 
 /**
+ * DELETE /books/{id} - 指定したIDの図書を削除するAPI
+ * @param id 削除する図書のID
+ * @returns 削除結果
+ */
+const deleteBook = async (id: string): Promise<boolean> => {
+  // IDのバリデーション
+  const bookId = parseInt(id, 10);
+  if (isNaN(bookId)) {
+    throw new Error('無効な図書IDです');
+  }
+
+  // 図書の存在確認
+  const checkSql = `
+    SELECT id FROM books WHERE id = $1
+  `;
+  const checkResult = await query<{ id: number }>(checkSql, [bookId]);
+
+  if (checkResult.length === 0) {
+    throw new Error('指定された図書が見つかりません');
+  }
+
+  // 図書の削除
+  const deleteSql = `
+    DELETE FROM books WHERE id = $1
+    RETURNING id
+  `;
+
+  const deleteResult = await query<{ id: number }>(deleteSql, [bookId]);
+  return deleteResult.length > 0;
+};
+
+/**
  * 標準的なCORSヘッダーを設定
  */
 const getCorsHeaders = (): Record<string, string> => ({
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type,Authorization',
-  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST',
+  'Access-Control-Allow-Methods': 'OPTIONS,GET,POST,DELETE',
   'Content-Type': 'application/json',
 });
 
@@ -137,6 +169,14 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
           error: parseError instanceof Error ? parseError.message : String(parseError),
         });
       }
+    }
+
+    // 図書削除APIの処理
+    const bookIdMatch = event.resource.match(/\/books\/(\d+)/);
+    if (event.httpMethod === 'DELETE' && bookIdMatch) {
+      const bookId = bookIdMatch[1];
+      await deleteBook(bookId);
+      return formatResponse(204, {});
     }
 
     // 対応していないエンドポイントの場合

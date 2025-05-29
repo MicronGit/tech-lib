@@ -83,12 +83,14 @@
               column="owner"
               :currentSortColumn="sortColumn"
               :sortDirection="sortDirection"
-              width="12%"
+              width="10%"
               @sort="sortBy"
             >
               オーナー
               <Tooltip text="この技術書を提供した人の名前です" />
             </SortableTableHeader>
+
+            <th width="5%" class="actions-header">操作</th>
           </tr>
         </thead>
         <tbody>
@@ -101,11 +103,29 @@
             <td>{{ book.pageCount }}</td>
             <td>{{ book.language }}</td>
             <td class="owner">{{ book.owner }}</td>
+            <td class="actions">
+              <button class="delete-btn" @click="confirmDelete(book)" title="削除">×</button>
+            </td>
           </tr>
         </tbody>
       </table>
       <div v-if="filteredAndSortedBooks.length === 0" class="no-results">
         検索条件に一致する図書がありません
+      </div>
+    </div>
+
+    <!-- 削除確認ダイアログ -->
+    <div v-if="showDeleteDialog" class="delete-dialog-overlay">
+      <div class="delete-dialog">
+        <h3>図書の削除</h3>
+        <p>「{{ bookToDelete?.title }}」を削除してもよろしいですか？</p>
+        <p class="warning">この操作は取り消せません。</p>
+        <div class="dialog-buttons">
+          <button class="cancel-btn" @click="cancelDelete">キャンセル</button>
+          <button class="confirm-btn" @click="deleteSelectedBook" :disabled="isDeleting">
+            {{ isDeleting ? '削除中...' : '削除する' }}
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -115,7 +135,7 @@
 import { computed, defineComponent, onMounted, ref } from 'vue';
 import { useSearchableData } from '../composables/useSearchableData';
 import { useSortableData } from '../composables/useSortableData';
-import { fetchBooks } from '../services/bookService';
+import { deleteBook, fetchBooks } from '../services/bookService';
 import type { Book } from '../types/Book';
 import SearchBox from './common/SearchBox.vue';
 import SortableTableHeader from './common/SortableTableHeader.vue';
@@ -132,6 +152,9 @@ export default defineComponent({
     const books = ref<Book[]>([]);
     const loading = ref(true);
     const error = ref<string | null>(null);
+    const showDeleteDialog = ref(false);
+    const bookToDelete = ref<Book | null>(null);
+    const isDeleting = ref(false);
 
     // ソート機能の設定
     const { sortColumn, sortDirection, sortBy } = useSortableData<Book>(books, 'title');
@@ -179,6 +202,40 @@ export default defineComponent({
       }
     };
 
+    // 削除確認ダイアログを表示
+    const confirmDelete = (book: Book) => {
+      bookToDelete.value = book;
+      showDeleteDialog.value = true;
+    };
+
+    // 削除キャンセル
+    const cancelDelete = () => {
+      showDeleteDialog.value = false;
+      bookToDelete.value = null;
+    };
+
+    // 書籍の削除
+    const deleteSelectedBook = async () => {
+      if (!bookToDelete.value) return;
+
+      isDeleting.value = true;
+      try {
+        // APIを呼び出して図書を削除
+        await deleteBook(bookToDelete.value.id);
+
+        // 削除後にローカルデータからも削除
+        books.value = books.value.filter((book) => book.id !== bookToDelete.value?.id);
+
+        // 削除後はダイアログを閉じる
+        showDeleteDialog.value = false;
+        bookToDelete.value = null;
+      } catch (err) {
+        console.error('Error deleting book:', err);
+      } finally {
+        isDeleting.value = false;
+      }
+    };
+
     // データを再読み込みするメソッドを追加
     const refreshBooks = () => {
       loadBooks();
@@ -199,6 +256,12 @@ export default defineComponent({
       clearSearch,
       filteredAndSortedBooks,
       refreshBooks,
+      showDeleteDialog,
+      bookToDelete,
+      confirmDelete,
+      cancelDelete,
+      deleteSelectedBook,
+      isDeleting,
     };
   },
 });
@@ -280,5 +343,84 @@ h1 {
     overflow-x: auto;
     white-space: nowrap;
   }
+}
+
+/* 操作ボタンのスタイル */
+.actions {
+  text-align: center;
+}
+
+.delete-btn {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
+
+/* 削除確認ダイアログのスタイル */
+.delete-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.delete-dialog {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+}
+
+.delete-dialog h3 {
+  margin-top: 0;
+}
+
+.warning {
+  color: #dc3545;
+  font-weight: bold;
+  margin: 15px 0;
+}
+
+.dialog-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.cancel-btn,
+.confirm-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #6c757d;
+  color: white;
+}
+
+.confirm-btn {
+  background: #dc3545;
+  color: white;
 }
 </style>

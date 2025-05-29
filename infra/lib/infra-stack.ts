@@ -150,16 +150,16 @@ export class InfraStack extends cdk.Stack {
     // POST /books - 図書を登録する
     booksResource.addMethod('POST', new apigateway.LambdaIntegration(apiFunction));
 
+    // DELETE /books/{id} - 図書を削除する
+    const bookResource = booksResource.addResource('{id}');
+    bookResource.addMethod('DELETE', new apigateway.LambdaIntegration(apiFunction));
+
     // 以下のAPIエンドポイントは現時点では不要なためコメントアウト
     // // GET /books/{id}
-    // const bookResource = booksResource.addResource('{id}');
     // bookResource.addMethod('GET', new apigateway.LambdaIntegration(apiFunction));
     //
     // // PUT /books/{id}
     // bookResource.addMethod('PUT', new apigateway.LambdaIntegration(apiFunction));
-    //
-    // // DELETE /books/{id}
-    // bookResource.addMethod('DELETE', new apigateway.LambdaIntegration(apiFunction));
 
     // S3にウェブサイトのコンテンツをデプロイ
     new s3deploy.BucketDeployment(this, 'DeployWebsite', {

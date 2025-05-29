@@ -58,3 +58,14 @@ export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
     throw error;
   }
 }
+
+// 図書削除用のAPIメソッド
+export async function deleteBook(id: string): Promise<boolean> {
+  try {
+    await axios.delete(`${API_URL}/${id}`);
+    return true;
+  } catch (error) {
+    console.error('Error deleting book:', error);
+    throw error;
+  }
+}
