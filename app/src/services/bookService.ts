@@ -53,6 +53,7 @@ export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
     return {
       id: String(response.data.id),
       ...book,
+      descriptionByAi: response.data.description_by_ai || '',
     };
   } catch (error) {
     console.error('Error adding book:', error);

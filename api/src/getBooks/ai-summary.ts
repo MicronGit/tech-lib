@@ -39,23 +39,44 @@ export async function generateBookSummary(bookInfo: SummaryInput): Promise<strin
         },
       ],
       stop_sequences: ['\n\nHuman:'],
-    };
-
-    // Bedrock APIにリクエストを送信
+    }; // Bedrock APIにリクエストを送信
     const command = new InvokeModelCommand({
       modelId: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
       body: JSON.stringify(payload),
     });
 
-    const response = await bedrockClient.send(command);
-
-    // レスポンスを解析
+    const response = await bedrockClient.send(command); // レスポンスを解析
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-    const summary = responseBody.content?.[0]?.text || '';
+
+    // Claude 3.5モデルのレスポンス形式に応じて適切にパースする
+    let summary = '';
+
+    if (responseBody.content && Array.isArray(responseBody.content)) {
+      // content配列からテキスト部分を抽出
+      summary = responseBody.content
+        .filter((item: any) => item.type === 'text')
+        .map((item: any) => item.text)
+        .join(' ')
+        .trim();
+    } else if (responseBody.completion) {
+      // 古い形式の場合
+      summary = responseBody.completion.trim();
+    } else if (responseBody.content?.[0]?.text) {
+      // 別の形式の場合
+      summary = responseBody.content[0].text.trim();
+    }
 
     return summary;
   } catch (error) {
     console.error('Error generating AI summary with Bedrock:', error);
+    // エラーメッセージを詳細に記録
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+      });
+    }
     return '';
   }
 }

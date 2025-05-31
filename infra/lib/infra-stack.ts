@@ -130,10 +130,10 @@ export class InfraStack extends cdk.Stack {
     apiFunction.addToRolePolicy(
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
-        actions: ['bedrock:InvokeModel'],
+        actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
         resources: [
           // Claude 3.5 Sonnetモデルに対する権限を指定
-          'arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1'
+          'arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1',
         ],
       })
     );
