@@ -41,14 +41,14 @@ export async function generateBookSummary(bookInfo: SummaryInput): Promise<strin
       stop_sequences: ['\n\nHuman:'],
     }; // Bedrock APIにリクエストを送信
     const command = new InvokeModelCommand({
-      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
+      modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
       body: JSON.stringify(payload),
     });
 
     const response = await bedrockClient.send(command); // レスポンスを解析
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
 
-    // Claude 3.5モデルのレスポンス形式に応じて適切にパースする
+    // Claude 3 Sonnetモデルのレスポンス形式に応じて適切にパースする
     let summary = '';
 
     if (responseBody.content && Array.isArray(responseBody.content)) {
