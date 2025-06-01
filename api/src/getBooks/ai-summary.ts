@@ -25,7 +25,7 @@ export async function generateBookSummary(bookInfo: SummaryInput): Promise<strin
       著者: ${bookInfo.author}
       出版社: ${bookInfo.publisher}
       ${bookInfo.genre ? `ジャンル: ${bookInfo.genre}` : ''}
-    `; // Anthropic Claude 3.5 Sonnetモデルを使用する場合のリクエスト形式
+    `; // Anthropic Claude 3 Haikuモデルを使用する場合のリクエスト形式
     const payload = {
       anthropic_version: 'bedrock-2023-05-31',
       max_tokens: 300,
@@ -41,7 +41,7 @@ export async function generateBookSummary(bookInfo: SummaryInput): Promise<strin
       stop_sequences: ['\n\nHuman:'],
     }; // Bedrock APIにリクエストを送信
     const command = new InvokeModelCommand({
-      modelId: 'anthropic.claude-3-5-sonnet-20240620-v1:0',
+      modelId: 'anthropic.claude-3-haiku-20240307-v1:0',
       body: JSON.stringify(payload),
     });
 

@@ -132,8 +132,8 @@ export class InfraStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
         resources: [
-          // Claude 3.5 Sonnetモデルに対する権限を指定
-          'arn:aws:bedrock:*::foundation-model/anthropic.claude-3-5-sonnet-20240620-v1:0',
+          // Claude 3 Haikuモデルに対する権限を指定
+          'arn:aws:bedrock:*::foundation-model/anthropic.claude-3-haiku-20240307-v1:0',
         ],
       })
     );
