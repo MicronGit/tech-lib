@@ -111,7 +111,6 @@ export class InfraStack extends cdk.Stack {
           '@aws-sdk/*',
           // Lambda Layer で提供される依存関係も外部モジュールとして指定
           '@aws-sdk/client-secrets-manager',
-          '@aws-sdk/client-bedrock-runtime',
         ],
         nodeModules: [], // 必要なモジュールがあれば追加
         forceDockerBundling: false, // Dockerを使用せずにビルド
@@ -125,18 +124,6 @@ export class InfraStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
     });
-
-    // Amazon Bedrockの権限を追加
-    apiFunction.addToRolePolicy(
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: ['bedrock:InvokeModel', 'bedrock:InvokeModelWithResponseStream'],
-        resources: [
-          // Claude 3 Sonnetモデルに対する権限を指定
-          'arn:aws:bedrock:*::foundation-model/anthropic.claude-3-sonnet-20240229-v1:0',
-        ],
-      })
-    );
 
     // API Gatewayを作成してLambda関数と統合
     const api = new apigateway.RestApi(this, 'TechLibApi', {

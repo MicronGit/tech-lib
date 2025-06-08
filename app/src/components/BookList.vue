@@ -96,7 +96,7 @@
         <tbody>
           <tr v-for="book in filteredAndSortedBooks" :key="book.id">
             <td class="title">
-              <a href="#" @click.prevent="showBookSummary(book)">{{ book.title }}</a>
+              {{ book.title }}
             </td>
             <td>{{ book.author }}</td>
             <td>{{ book.publisher }}</td>
@@ -130,11 +130,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 書籍要約表示モーダル -->
-    <Modal :show="showSummaryModal" :title="selectedBook?.title || ''" @close="closeSummaryModal">
-      <BookSummary :summary="selectedBook?.descriptionByAi || ''" :loading="false" :error="''" />
-    </Modal>
   </div>
 </template>
 
@@ -144,7 +139,6 @@ import { useSearchableData } from '../composables/useSearchableData';
 import { useSortableData } from '../composables/useSortableData';
 import { deleteBook, fetchBooks } from '../services/bookService';
 import type { Book } from '../types/Book';
-import BookSummary from './BookSummary.vue';
 import Modal from './common/Modal.vue';
 import SearchBox from './common/SearchBox.vue';
 import SortableTableHeader from './common/SortableTableHeader.vue';
@@ -157,7 +151,6 @@ export default defineComponent({
     SortableTableHeader,
     Tooltip,
     Modal,
-    BookSummary,
   },
   setup() {
     const books = ref<Book[]>([]);
@@ -166,8 +159,6 @@ export default defineComponent({
     const showDeleteDialog = ref(false);
     const bookToDelete = ref<Book | null>(null);
     const isDeleting = ref(false);
-    const showSummaryModal = ref(false);
-    const selectedBook = ref<Book | null>(null);
 
     // ソート機能の設定
     const { sortColumn, sortDirection, sortBy } = useSortableData<Book>(books, 'title');
@@ -254,18 +245,6 @@ export default defineComponent({
       loadBooks();
     };
 
-    // 書籍要約モーダルを表示
-    const showBookSummary = (book: Book) => {
-      selectedBook.value = book;
-      showSummaryModal.value = true;
-    };
-
-    // 書籍要約モーダルを閉じる
-    const closeSummaryModal = () => {
-      showSummaryModal.value = false;
-      selectedBook.value = null;
-    };
-
     onMounted(() => {
       loadBooks();
     });
@@ -287,10 +266,6 @@ export default defineComponent({
       cancelDelete,
       deleteSelectedBook,
       isDeleting,
-      showSummaryModal,
-      selectedBook,
-      showBookSummary,
-      closeSummaryModal,
     };
   },
 });

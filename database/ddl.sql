@@ -15,7 +15,6 @@ CREATE TABLE books (
   page_count INTEGER,
   language VARCHAR(50),
   owner VARCHAR(100),
-  description_by_ai TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

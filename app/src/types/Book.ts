@@ -7,7 +7,6 @@ export interface Book {
   publicationDate: string;
   genre: string;
   description?: string;
-  descriptionByAi?: string; // AIによる書籍要約
   pageCount: number;
   language: string;
   coverImageUrl?: string;

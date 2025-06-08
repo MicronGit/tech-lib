@@ -1,6 +1,5 @@
 import { APIGatewayProxyEvent, APIGatewayProxyResult } from 'aws-lambda';
 import { ApiResponse, Book } from '../../types';
-import { generateBookSummary } from './ai-summary';
 import { end, query } from './db';
 
 /**
@@ -19,7 +18,6 @@ const getBooks = async (): Promise<Book[]> => {
       page_count,
       language,
       owner,
-      description_by_ai,
       created_at::text as created_at,
       updated_at::text as updated_at
     FROM books
@@ -42,19 +40,6 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
     throw new Error('必須項目（タイトル、著者、出版社）が入力されていません');
   }
 
-  // AI要約を生成
-  let aiSummary = '';
-  try {
-    aiSummary = await generateBookSummary({
-      title,
-      author,
-      publisher,
-      genre: genre || undefined,
-    });
-  } catch (summaryError) {
-    console.error('AI要約の生成に失敗しましたが、図書の登録は続行します:', summaryError);
-  }
-
   const sql = `
     INSERT INTO books (
       title,
@@ -64,10 +49,9 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
       genre,
       page_count,
       language,
-      owner,
-      description_by_ai
+      owner
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8, $9
+      $1, $2, $3, $4, $5, $6, $7, $8
     )
     RETURNING
       id,
@@ -79,7 +63,6 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
       page_count,
       language,
       owner,
-      description_by_ai,
       created_at::text as created_at,
       updated_at::text as updated_at
   `;
@@ -93,7 +76,6 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
     page_count || null,
     language || null,
     owner || null,
-    aiSummary || null,
   ];
 
   const result = await query<Book>(sql, params);
