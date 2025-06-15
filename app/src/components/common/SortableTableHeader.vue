@@ -1,7 +1,7 @@
 <template>
-  <th @click="onSort" class="sortable" :style="{ width: width }">
+  <th class="sortable" :style="{ width: width }" @click="onSort">
     <slot></slot>
-    <span class="sort-icon" v-if="isCurrentSortColumn">
+    <span v-if="isCurrentSortColumn" class="sort-icon">
       {{ sortDirection === 'asc' ? '▲' : '▼' }}
     </span>
   </th>

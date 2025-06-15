@@ -14,7 +14,19 @@ export async function fetchBooks(): Promise<Book[]> {
 }
 
 // APIレスポンスデータをフロントエンドの型に変換する関数
-export function convertToBookFormat(apiBooks: any[]): Book[] {
+interface ApiBook {
+  id: number;
+  title: string;
+  author: string;
+  publisher: string;
+  publication_date?: string;
+  genre?: string;
+  page_count?: number;
+  language?: string;
+  owner?: string;
+}
+
+export function convertToBookFormat(apiBooks: ApiBook[]): Book[] {
   return apiBooks.map((book) => ({
     id: String(book.id),
     title: book.title,
@@ -27,7 +39,6 @@ export function convertToBookFormat(apiBooks: any[]): Book[] {
     owner: book.owner || '',
     status: 'available',
     description: '',
-    descriptionByAi: book.description_by_ai || '',
     coverImageUrl: '',
   }));
 }
@@ -51,9 +62,9 @@ export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
     const response = await axios.post(API_URL, apiBook);
     // レスポンスから登録された図書データを取得
     return {
-      id: String(response.data.id),
       ...book,
-      descriptionByAi: response.data.description_by_ai || '',
+      id: String(response.data.id),
+      coverImageUrl: '',
     };
   } catch (error) {
     console.error('Error adding book:', error);

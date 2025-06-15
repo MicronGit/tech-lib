@@ -11,8 +11,8 @@
           <tr>
             <SortableTableHeader
               column="title"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="22%"
               @sort="sortBy"
             >
@@ -21,8 +21,8 @@
 
             <SortableTableHeader
               column="author"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="15%"
               @sort="sortBy"
             >
@@ -31,8 +31,8 @@
 
             <SortableTableHeader
               column="publisher"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="15%"
               @sort="sortBy"
             >
@@ -41,8 +41,8 @@
 
             <SortableTableHeader
               column="publicationDate"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="10%"
               @sort="sortBy"
             >
@@ -51,8 +51,8 @@
 
             <SortableTableHeader
               column="genre"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="10%"
               @sort="sortBy"
             >
@@ -61,8 +61,8 @@
 
             <SortableTableHeader
               column="pageCount"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="8%"
               @sort="sortBy"
             >
@@ -71,8 +71,8 @@
 
             <SortableTableHeader
               column="language"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="8%"
               @sort="sortBy"
             >
@@ -81,8 +81,8 @@
 
             <SortableTableHeader
               column="owner"
-              :currentSortColumn="sortColumn"
-              :sortDirection="sortDirection"
+              :current-sort-column="sortColumn"
+              :sort-direction="sortDirection"
               width="10%"
               @sort="sortBy"
             >
@@ -106,7 +106,7 @@
             <td>{{ book.language }}</td>
             <td class="owner">{{ book.owner }}</td>
             <td class="actions">
-              <button class="delete-btn" @click="confirmDelete(book)" title="削除">×</button>
+              <button class="delete-btn" title="削除" @click="confirmDelete(book)">×</button>
             </td>
           </tr>
         </tbody>
@@ -124,7 +124,7 @@
         <p class="warning">この操作は取り消せません。</p>
         <div class="dialog-buttons">
           <button class="cancel-btn" @click="cancelDelete">キャンセル</button>
-          <button class="confirm-btn" @click="deleteSelectedBook" :disabled="isDeleting">
+          <button class="confirm-btn" :disabled="isDeleting" @click="deleteSelectedBook">
             {{ isDeleting ? '削除中...' : '削除する' }}
           </button>
         </div>
@@ -139,7 +139,6 @@ import { useSearchableData } from '../composables/useSearchableData';
 import { useSortableData } from '../composables/useSortableData';
 import { deleteBook, fetchBooks } from '../services/bookService';
 import type { Book } from '../types/Book';
-import Modal from './common/Modal.vue';
 import SearchBox from './common/SearchBox.vue';
 import SortableTableHeader from './common/SortableTableHeader.vue';
 import Tooltip from './common/Tooltip.vue';
@@ -150,7 +149,6 @@ export default defineComponent({
     SearchBox,
     SortableTableHeader,
     Tooltip,
-    Modal,
   },
   setup() {
     const books = ref<Book[]>([]);
@@ -181,9 +179,9 @@ export default defineComponent({
 
         // 数値型の場合は数値として比較
         if (sortColumn.value === 'pageCount') {
-          valueA = Number(valueA);
-          valueB = Number(valueB);
-          return sortDirection.value === 'asc' ? valueA - valueB : valueB - valueA;
+          const numA = Number(valueA);
+          const numB = Number(valueB);
+          return sortDirection.value === 'asc' ? numA - numB : numB - numA;
         }
 
         // 文字列の場合（デフォルト）
@@ -276,37 +274,45 @@ export default defineComponent({
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px 20px;
   box-sizing: border-box;
 }
 
 h1 {
-  color: #333;
+  color: #2c3e50;
   text-align: center;
-  margin-bottom: 30px;
+  margin-bottom: 40px;
+  font-size: 2.2rem;
+  font-weight: 600;
 }
 
 .book-table {
   width: 100%;
   table-layout: fixed;
   border-collapse: collapse;
-  margin-top: 20px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  margin-top: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   clear: both;
   overflow-x: auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #fff;
 }
 
 .book-table td {
-  padding: 12px 15px;
+  padding: 16px 18px;
   text-align: left;
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #f1f3f4;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 14px;
 }
 
 .book-table tbody tr:hover {
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
+  transform: scale(1.001);
+  transition: all 0.2s ease;
 }
 
 .title {
@@ -341,21 +347,55 @@ h1 {
 
 .no-results {
   text-align: center;
-  padding: 20px;
+  padding: 40px 20px;
   color: #6c757d;
   font-style: italic;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  margin-top: 20px;
 }
 
-/* テーブルコンテナを追加してスクロール可能にする */
-@media screen and (max-width: 1200px) {
+/* レスポンシブデザインの改善 */
+@media screen and (max-width: 1024px) {
   .book-list {
-    padding: 10px;
+    padding: 20px 15px;
+  }
+
+  .book-table {
+    font-size: 13px;
+  }
+
+  .book-table td {
+    padding: 12px 10px;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .book-list {
+    padding: 15px 10px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+    margin-bottom: 25px;
   }
 
   .book-table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
+    font-size: 12px;
+  }
+
+  .book-table td {
+    padding: 10px 8px;
+  }
+
+  .search-box {
+    width: 100%;
+    float: none;
+    margin-bottom: 20px;
   }
 }
 
@@ -365,19 +405,24 @@ h1 {
 }
 
 .delete-btn {
-  background-color: #dc3545;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
   color: white;
   border: none;
   border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .delete-btn:hover {
-  background-color: #c82333;
+  background: linear-gradient(135deg, #ff5252 0%, #d32f2f 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
 }
 
 /* 削除確認ダイアログのスタイル */

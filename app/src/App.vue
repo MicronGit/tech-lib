@@ -30,8 +30,8 @@ function handleBookAdded() {
     <header class="app-header">
       <h1>技術書管理システム</h1>
       <nav class="app-nav">
-        <button @click="showBookList" :class="{ active: currentView === 'list' }">図書一覧</button>
-        <button @click="showBookForm" :class="{ active: currentView === 'form' }">図書登録</button>
+        <button :class="{ active: currentView === 'list' }" @click="showBookList">図書一覧</button>
+        <button :class="{ active: currentView === 'form' }" @click="showBookForm">図書登録</button>
       </nav>
     </header>
     <main>
@@ -64,16 +64,18 @@ body {
 }
 
 .app-header {
-  background-color: #4c6ef5;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 1rem;
+  padding: 1.5rem;
   text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .app-header h1 {
-  margin: 0 0 10px 0;
-  font-size: 1.8rem;
+  margin: 0 0 15px 0;
+  font-size: 2.2rem;
+  font-weight: 600;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .app-nav {
@@ -86,34 +88,39 @@ body {
 .app-nav button {
   background-color: transparent;
   color: white;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  padding: 8px 15px;
-  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.7);
+  padding: 10px 20px;
+  border-radius: 25px;
   cursor: pointer;
-  transition:
-    background-color 0.3s,
-    border-color 0.3s;
+  font-weight: 500;
+  transition: all 0.3s ease;
 }
 
 .app-nav button.active {
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(255, 255, 255, 0.3);
   border-color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .app-nav button:hover {
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 main {
   flex: 1;
-  padding: 20px 0;
+  padding: 30px 20px;
+  min-height: calc(100vh - 200px);
 }
 
 .app-footer {
-  background-color: #343a40;
+  background: linear-gradient(135deg, #343a40 0%, #495057 100%);
   color: #f8f9fa;
   text-align: center;
-  padding: 1rem;
+  padding: 1.5rem;
   margin-top: auto;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
 }
 </style>

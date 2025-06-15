@@ -204,16 +204,19 @@ export default defineComponent({
 .book-form {
   max-width: 800px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 30px;
   background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 h2 {
-  color: #333;
+  color: #2c3e50;
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  font-size: 1.8rem;
+  font-weight: 600;
 }
 
 .form-group {
@@ -231,18 +234,21 @@ input,
 select,
 textarea {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  padding: 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.3s;
+  transition: all 0.3s ease;
+  background-color: #fafbfc;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #4caf50;
+  border-color: #667eea;
   outline: none;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
 }
 
 .form-actions {
@@ -267,8 +273,10 @@ button {
 }
 
 .submit-btn {
-  background-color: #4caf50;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
 .cancel-btn:hover {
@@ -276,7 +284,9 @@ button {
 }
 
 .submit-btn:hover {
-  background-color: #388e3c;
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
 button:disabled {
@@ -294,5 +304,40 @@ button:disabled {
   color: #388e3c;
   margin-top: 15px;
   text-align: center;
+}
+
+/* レスポンシブデザインの改善 */
+@media (max-width: 768px) {
+  .book-form {
+    padding: 20px 15px;
+    margin: 0 10px;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+  }
+
+  .form-actions {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .form-actions button {
+    width: 100%;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .book-form {
+    padding: 15px 10px;
+    margin: 0 5px;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px; /* iOS zoom prevention */
+  }
 }
 </style>

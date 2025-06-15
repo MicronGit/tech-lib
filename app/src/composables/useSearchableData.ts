@@ -1,10 +1,7 @@
 import type { Ref } from 'vue';
 import { computed, ref } from 'vue';
 
-export function useSearchableData<T extends Record<string, any>>(
-  items: Ref<T[]>,
-  searchField: keyof T
-) {
+export function useSearchableData<T>(items: Ref<T[]>, searchField: keyof T) {
   const searchQuery = ref('');
 
   const filteredItems = computed(() => {

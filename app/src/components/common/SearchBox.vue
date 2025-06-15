@@ -1,8 +1,8 @@
 <template>
   <div class="search-box">
     <input
+      :value="modelValue"
       type="text"
-      v-model="modelValue"
       class="search-input"
       :placeholder="placeholder"
       @input="updateValue"
@@ -49,20 +49,20 @@ export default defineComponent({
 <style scoped>
 .search-box {
   position: relative;
-  margin-bottom: 20px;
-  width: 300px;
+  margin-bottom: 25px;
+  width: 320px;
   float: left;
 }
 
 .search-input {
   width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #333;
-  border-radius: 4px;
+  padding: 12px 40px 12px 16px;
+  border: 2px solid #e1e5e9;
+  border-radius: 25px;
   font-size: 14px;
-  background-color: white;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background-color: #fafbfc;
+  color: #2c3e50;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
 
@@ -72,25 +72,36 @@ export default defineComponent({
 }
 
 .search-input:focus {
-  border-color: #666;
+  border-color: #667eea;
   outline: 0;
-  box-shadow: 0 0 0 0.1rem rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  box-shadow:
+    0 0 0 3px rgba(102, 126, 234, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .search-clear {
   position: absolute;
-  right: 10px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   cursor: pointer;
   color: #6c757d;
-  font-size: 14px;
-  background: transparent;
+  font-size: 16px;
+  background: rgba(108, 117, 125, 0.1);
   border: none;
-  padding: 3px;
+  padding: 6px;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .search-clear:hover {
-  color: #343a40;
+  color: #fff;
+  background: #6c757d;
 }
 </style>

@@ -29,14 +29,15 @@ export default defineComponent({
       type: String,
       required: true,
     },
-  },  setup(_props, { slots }) {
+  },
+  emits: ['close'],
+  setup(_props, { slots }) {
     const hasFooter = computed(() => !!slots.footer);
 
     return {
       hasFooter,
     };
   },
-  emits: ['close'],
 });
 </script>
 

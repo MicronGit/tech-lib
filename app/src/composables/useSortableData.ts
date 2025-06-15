@@ -1,7 +1,7 @@
 import type { Ref } from 'vue';
 import { computed, ref } from 'vue';
 
-export function useSortableData<T extends Record<string, any>>(
+export function useSortableData<T>(
   items: Ref<T[]>,
   initialSortColumn: keyof T,
   initialDirection: 'asc' | 'desc' = 'asc'
@@ -26,14 +26,14 @@ export function useSortableData<T extends Record<string, any>>(
     const sorted = [...items.value];
 
     return sorted.sort((a, b) => {
-      let valueA = a[sortColumn.value];
-      let valueB = b[sortColumn.value];
+      const valueA = (a as any)[sortColumn.value];
+      const valueB = (b as any)[sortColumn.value];
 
       // 数値型の場合は数値として比較
       if (typeof valueA === 'number' || typeof valueB === 'number') {
-        valueA = Number(valueA);
-        valueB = Number(valueB);
-        return sortDirection.value === 'asc' ? valueA - valueB : valueB - valueA;
+        const numA = Number(valueA as number);
+        const numB = Number(valueB as number);
+        return sortDirection.value === 'asc' ? numA - numB : numB - numA;
       }
 
       // 文字列の場合（デフォルト）
