@@ -50,8 +50,8 @@ export default defineComponent({
 .search-box {
   position: relative;
   margin-bottom: 25px;
-  width: 320px;
-  float: left;
+  width: 100%;
+  max-width: 400px;
 }
 
 .search-input {
@@ -64,6 +64,7 @@ export default defineComponent({
   color: #2c3e50;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  box-sizing: border-box;
 }
 
 .search-input::placeholder {
@@ -103,5 +104,18 @@ export default defineComponent({
 .search-clear:hover {
   color: #fff;
   background: #6c757d;
+}
+
+/* レスポンシブデザインの追加 */
+@media (max-width: 768px) {
+  .search-box {
+    width: 100%;
+    max-width: none;
+    margin-bottom: 20px;
+  }
+  
+  .search-input {
+    font-size: 16px; /* iOS zoom prevention */
+  }
 }
 </style>

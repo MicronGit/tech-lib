@@ -60,15 +60,16 @@ button:focus-visible {
 
 #app {
   width: 100%;
-  margin: 0 auto;
-  padding: 2rem;
+  margin: 0;
+  padding: 0;
   text-align: center;
+  box-sizing: border-box;
 }
 
 /* レスポンシブデザインの改善 */
 @media (max-width: 768px) {
   #app {
-    padding: 1rem;
+    padding: 0;
   }
 }
 

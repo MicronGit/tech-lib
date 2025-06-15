@@ -6,7 +6,8 @@
     <div v-else-if="error" class="error">{{ error }}</div>
     <div v-else>
       <SearchBox v-model="searchQuery" placeholder="タイトルで検索..." @clear="clearSearch" />
-      <table class="book-table">
+      <div class="table-container">
+        <table class="book-table">
         <thead>
           <tr>
             <SortableTableHeader
@@ -110,7 +111,8 @@
             </td>
           </tr>
         </tbody>
-      </table>
+        </table>
+      </div>
       <div v-if="filteredAndSortedBooks.length === 0" class="no-results">
         検索条件に一致する図書がありません
       </div>
@@ -272,9 +274,9 @@ export default defineComponent({
 <style scoped>
 .book-list {
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 30px 20px;
+  max-width: none;
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
@@ -293,10 +295,10 @@ h1 {
   margin-top: 30px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   clear: both;
-  overflow-x: auto;
   border-radius: 12px;
   overflow: hidden;
   background-color: #fff;
+  min-width: 1000px;
 }
 
 .book-table td {
@@ -356,6 +358,15 @@ h1 {
   margin-top: 20px;
 }
 
+/* テーブルコンテナでスクロール対応 */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  margin-top: 30px;
+}
+
 /* レスポンシブデザインの改善 */
 @media screen and (max-width: 1024px) {
   .book-list {
@@ -381,11 +392,13 @@ h1 {
     margin-bottom: 25px;
   }
 
+  .table-container {
+    margin-top: 20px;
+  }
+
   .book-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
     font-size: 12px;
+    min-width: 800px;
   }
 
   .book-table td {

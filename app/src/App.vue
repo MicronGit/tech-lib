@@ -113,6 +113,9 @@ main {
   flex: 1;
   padding: 30px 20px;
   min-height: calc(100vh - 200px);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .app-footer {
@@ -122,5 +125,30 @@ main {
   padding: 1.5rem;
   margin-top: auto;
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* レスポンシブデザインの追加 */
+@media (max-width: 768px) {
+  .app-nav {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .app-nav button {
+    width: 100%;
+  }
+
+  main {
+    padding: 20px 15px;
+    width: 100%;
+  }
+
+  .app-header {
+    padding: 1rem;
+  }
+
+  .app-header h1 {
+    font-size: 1.8rem;
+  }
 }
 </style>

@@ -202,6 +202,7 @@ export default defineComponent({
 
 <style scoped>
 .book-form {
+  width: 100%;
   max-width: 800px;
   margin: 0 auto;
   padding: 30px;
@@ -209,6 +210,7 @@ export default defineComponent({
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid rgba(0, 0, 0, 0.05);
+  box-sizing: border-box;
 }
 
 h2 {
@@ -240,6 +242,7 @@ textarea {
   font-size: 16px;
   transition: all 0.3s ease;
   background-color: #fafbfc;
+  box-sizing: border-box;
 }
 
 input:focus,
@@ -310,7 +313,9 @@ button:disabled {
 @media (max-width: 768px) {
   .book-form {
     padding: 20px 15px;
-    margin: 0 10px;
+    margin: 0;
+    width: 100%;
+    border-radius: 0;
   }
 
   h2 {
@@ -331,7 +336,8 @@ button:disabled {
 @media (max-width: 480px) {
   .book-form {
     padding: 15px 10px;
-    margin: 0 5px;
+    margin: 0;
+    width: 100%;
   }
 
   input,
