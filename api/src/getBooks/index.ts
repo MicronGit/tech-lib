@@ -18,6 +18,7 @@ const getBooks = async (): Promise<Book[]> => {
       page_count,
       language,
       owner,
+      description,
       created_at::text as created_at,
       updated_at::text as updated_at
     FROM books
@@ -33,7 +34,7 @@ const getBooks = async (): Promise<Book[]> => {
  * @returns 登録された図書データ
  */
 const addBook = async (book: Partial<Book>): Promise<Book> => {
-  const { title, author, publisher, publication_date, genre, page_count, language, owner } = book;
+  const { title, author, publisher, publication_date, genre, page_count, language, owner, description } = book;
 
   // 必須項目のバリデーション
   if (!title || !author || !publisher) {
@@ -49,9 +50,10 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
       genre,
       page_count,
       language,
-      owner
+      owner,
+      description
     ) VALUES (
-      $1, $2, $3, $4, $5, $6, $7, $8
+      $1, $2, $3, $4, $5, $6, $7, $8, $9
     )
     RETURNING
       id,
@@ -63,6 +65,7 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
       page_count,
       language,
       owner,
+      description,
       created_at::text as created_at,
       updated_at::text as updated_at
   `;
@@ -76,6 +79,7 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
     page_count || null,
     language || null,
     owner || null,
+    description || null,
   ];
 
   const result = await query<Book>(sql, params);
@@ -109,6 +113,7 @@ const getBookById = async (id: string): Promise<Book> => {
       page_count,
       language,
       owner,
+      description,
       created_at::text as created_at,
       updated_at::text as updated_at
     FROM books

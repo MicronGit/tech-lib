@@ -12,6 +12,7 @@ export interface Book {
   page_count?: number;        // ページ数
   language?: string;          // 言語
   owner?: string;             // 所有者
+  description?: string;       // 本の概要・説明
   created_at?: string;        // ISO形式の日時文字列
   updated_at?: string;        // ISO形式の日時文字列
 }

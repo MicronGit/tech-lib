@@ -54,6 +54,7 @@ export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
       publisher: book.publisher,
       publication_date: book.publicationDate,
       genre: book.genre,
+      description: book.description,
       page_count: book.pageCount,
       language: book.language,
       owner: book.owner,
