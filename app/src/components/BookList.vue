@@ -95,9 +95,20 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="book in filteredAndSortedBooks" :key="book.id">
+            <tr
+              v-for="book in filteredAndSortedBooks"
+              :key="book.id"
+              class="book-row"
+              tabindex="0"
+              role="button"
+              :aria-label="`${book.title}の詳細を表示`"
+              @click="showBookDetail(book)"
+              @keydown.enter="showBookDetail(book)"
+              @keydown.space.prevent="showBookDetail(book)"
+            >
               <td class="title">
                 {{ book.title }}
+                <span class="detail-hint">クリックで詳細表示</span>
               </td>
               <td>{{ book.author }}</td>
               <td>{{ book.publisher }}</td>
@@ -107,7 +118,7 @@
               <td>{{ book.language }}</td>
               <td class="owner">{{ book.owner }}</td>
               <td class="actions">
-                <button class="delete-btn" title="削除" @click="confirmDelete(book)">×</button>
+                <button class="delete-btn" title="削除" @click.stop="confirmDelete(book)">×</button>
               </td>
             </tr>
           </tbody>
@@ -117,6 +128,9 @@
         検索条件に一致する図書がありません
       </div>
     </div>
+
+    <!-- 書籍詳細モーダル -->
+    <BookDetail :show="showDetailModal" :book-id="selectedBookId" @close="closeDetailModal" />
 
     <!-- 削除確認ダイアログ -->
     <div v-if="showDeleteDialog" class="delete-dialog-overlay">
@@ -141,6 +155,7 @@ import { useSearchableData } from '../composables/useSearchableData';
 import { useSortableData } from '../composables/useSortableData';
 import { deleteBook, fetchBooks } from '../services/bookService';
 import type { Book } from '../types/Book';
+import BookDetail from './BookDetail.vue';
 import SearchBox from './common/SearchBox.vue';
 import SortableTableHeader from './common/SortableTableHeader.vue';
 import Tooltip from './common/Tooltip.vue';
@@ -148,6 +163,7 @@ import Tooltip from './common/Tooltip.vue';
 export default defineComponent({
   name: 'BookList',
   components: {
+    BookDetail,
     SearchBox,
     SortableTableHeader,
     Tooltip,
@@ -159,6 +175,8 @@ export default defineComponent({
     const showDeleteDialog = ref(false);
     const bookToDelete = ref<Book | null>(null);
     const isDeleting = ref(false);
+    const showDetailModal = ref(false);
+    const selectedBookId = ref<string | null>(null);
 
     // ソート機能の設定
     const { sortColumn, sortDirection, sortBy } = useSortableData<Book>(books, 'title');
@@ -218,6 +236,18 @@ export default defineComponent({
       bookToDelete.value = null;
     };
 
+    // 詳細モーダルを表示
+    const showBookDetail = (book: Book) => {
+      selectedBookId.value = book.id;
+      showDetailModal.value = true;
+    };
+
+    // 詳細モーダルを閉じる
+    const closeDetailModal = () => {
+      showDetailModal.value = false;
+      selectedBookId.value = null;
+    };
+
     // 書籍の削除
     const deleteSelectedBook = async () => {
       if (!bookToDelete.value) return;
@@ -266,6 +296,10 @@ export default defineComponent({
       cancelDelete,
       deleteSelectedBook,
       isDeleting,
+      showDetailModal,
+      selectedBookId,
+      showBookDetail,
+      closeDetailModal,
     };
   },
 });
@@ -315,6 +349,40 @@ h1 {
   background-color: #f8f9fa;
   transform: scale(1.001);
   transition: all 0.2s ease;
+}
+
+.book-row {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.book-row:hover {
+  background-color: #e3f2fd !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.book-row:active {
+  background-color: #bbdefb !important;
+}
+
+.book-row:focus {
+  outline: 2px solid #2196f3;
+  outline-offset: -2px;
+  background-color: #e3f2fd !important;
+}
+
+.detail-hint {
+  font-size: 0.75rem;
+  color: #666;
+  font-style: italic;
+  margin-left: 8px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.book-row:hover .detail-hint {
+  opacity: 1;
 }
 
 .title {

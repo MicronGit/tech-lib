@@ -35,6 +35,7 @@
 ├── 📁 components/             # 機能コンポーネント
 │   ├── BookForm.vue           # 書籍フォーム
 │   ├── BookList.vue           # 書籍一覧
+│   ├── BookDetail.vue         # 書籍詳細モーダル
 │   ├── BookCard.vue           # 書籍カード
 │   └── 📁 common/             # 共通コンポーネント
 │       ├── Modal.vue          # モーダルダイアログ
@@ -97,6 +98,51 @@ interface ModalProps {
   size?: 'small' | 'medium' | 'large'; // サイズ
   persistent?: boolean;      // 外側クリックで閉じない
 }
+```
+
+#### 📖 BookDetailコンポーネント設計
+**責務**: 書籍詳細情報の表示、モーダル形式での詳細ビュー提供
+
+```typescript
+// BookDetail.vue の設計原則
+interface BookDetailProps {
+  show: boolean;             // モーダル表示状態
+  bookId: string | null;     // 表示する書籍のID
+}
+
+interface BookDetailEmits {
+  close: [];                 // モーダルを閉じる
+}
+
+// 機能仕様
+- 書籍IDに基づく動的詳細取得
+- ローディング状態の表示
+- エラーハンドリング機能
+- レスポンシブデザイン対応
+- キーボードナビゲーション対応
+- アクセシビリティ準拠
+```
+
+#### 📋 BookListコンポーネント拡張
+**新機能**: 行クリックによる詳細モーダル表示
+
+```typescript
+// 追加されたインタラクション機能
+interface BookListEnhancements {
+  // 詳細表示機能
+  showBookDetail: (book: Book) => void;
+  closeDetailModal: () => void;
+  
+  // 状態管理
+  showDetailModal: Ref<boolean>;
+  selectedBookId: Ref<string | null>;
+}
+
+// アクセシビリティ対応
+- tabindex="0" による キーボードフォーカス
+- role="button" による支援技術サポート
+- aria-label による詳細説明
+- Enter/Space キー対応
 ```
 
 ### コンポーネント命名規則
@@ -219,6 +265,7 @@ export const useBooksStore = defineStore('books', () => {
     filters,
     filteredBooks,
     fetchBooks,
+    fetchBookById,    // 新規追加: 書籍詳細取得
     createBook,
     updateBook,
     deleteBook

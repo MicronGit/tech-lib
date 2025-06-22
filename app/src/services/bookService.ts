@@ -21,6 +21,7 @@ interface ApiBook {
   publisher: string;
   publication_date?: string;
   genre?: string;
+  description?: string;
   page_count?: number;
   language?: string;
   owner?: string;
@@ -34,11 +35,11 @@ export function convertToBookFormat(apiBooks: ApiBook[]): Book[] {
     publisher: book.publisher,
     publicationDate: book.publication_date || '',
     genre: book.genre || '',
+    description: book.description || '',
     pageCount: book.page_count || 0,
     language: book.language || '',
     owner: book.owner || '',
     status: 'available',
-    description: '',
     coverImageUrl: '',
   }));
 }
@@ -68,6 +69,32 @@ export async function addBook(book: Omit<Book, 'id'>): Promise<Book> {
     };
   } catch (error) {
     console.error('Error adding book:', error);
+    throw error;
+  }
+}
+
+// 図書詳細取得用のAPIメソッド
+export async function fetchBookById(id: string): Promise<Book> {
+  try {
+    const response = await axios.get(`${API_URL}/${id}`);
+    // 単一の書籍データを変換
+    const apiBook: ApiBook = response.data;
+    return {
+      id: String(apiBook.id),
+      title: apiBook.title,
+      author: apiBook.author,
+      publisher: apiBook.publisher,
+      publicationDate: apiBook.publication_date || '',
+      genre: apiBook.genre || '',
+      description: apiBook.description || '',
+      pageCount: apiBook.page_count || 0,
+      language: apiBook.language || '',
+      owner: apiBook.owner || '',
+      status: 'available',
+      coverImageUrl: '',
+    };
+  } catch (error) {
+    console.error('Error fetching book:', error);
     throw error;
   }
 }
