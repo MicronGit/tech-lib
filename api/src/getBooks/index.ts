@@ -87,6 +87,44 @@ const addBook = async (book: Partial<Book>): Promise<Book> => {
 };
 
 /**
+ * GET /books/{id} - 指定したIDの図書詳細を取得するAPI
+ * @param id 取得する図書のID
+ * @returns 図書詳細データ
+ */
+const getBookById = async (id: string): Promise<Book> => {
+  // IDのバリデーション
+  const bookId = parseInt(id, 10);
+  if (isNaN(bookId)) {
+    throw new Error('無効な図書IDです');
+  }
+
+  const sql = `
+    SELECT
+      id,
+      title,
+      author,
+      publisher,
+      publication_date::text as publication_date,
+      genre,
+      page_count,
+      language,
+      owner,
+      created_at::text as created_at,
+      updated_at::text as updated_at
+    FROM books
+    WHERE id = $1
+  `;
+
+  const result = await query<Book>(sql, [bookId]);
+  
+  if (result.length === 0) {
+    throw new Error('指定された図書が見つかりません');
+  }
+
+  return result[0];
+};
+
+/**
  * DELETE /books/{id} - 指定したIDの図書を削除するAPI
  * @param id 削除する図書のID
  * @returns 削除結果
@@ -169,6 +207,16 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
           error: parseError instanceof Error ? parseError.message : String(parseError),
         });
       }
+    }
+
+    // 図書詳細取得APIの処理
+    if (event.resource === '/books/{id}' && event.httpMethod === 'GET') {
+      const bookId = event.pathParameters?.id;
+      if (!bookId) {
+        return formatResponse(400, { message: '図書IDが指定されていません' });
+      }
+      const book = await getBookById(bookId);
+      return formatResponse(200, book);
     }
 
     // 図書削除APIの処理
