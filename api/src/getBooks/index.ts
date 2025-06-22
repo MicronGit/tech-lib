@@ -172,9 +172,11 @@ export const handler = async (event: APIGatewayProxyEvent): Promise<APIGatewayPr
     }
 
     // 図書削除APIの処理
-    const bookIdMatch = event.resource.match(/\/books\/(\d+)/);
-    if (event.httpMethod === 'DELETE' && bookIdMatch) {
-      const bookId = bookIdMatch[1];
+    if (event.resource === '/books/{id}' && event.httpMethod === 'DELETE') {
+      const bookId = event.pathParameters?.id;
+      if (!bookId) {
+        return formatResponse(400, { message: '図書IDが指定されていません' });
+      }
       await deleteBook(bookId);
       return formatResponse(204, {});
     }
