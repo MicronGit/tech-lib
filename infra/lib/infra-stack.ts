@@ -154,10 +154,10 @@ export class InfraStack extends cdk.Stack {
     const bookResource = booksResource.addResource('{id}');
     bookResource.addMethod('DELETE', new apigateway.LambdaIntegration(apiFunction));
 
+    // GET /books/{id} - 図書詳細を取得する
+    bookResource.addMethod('GET', new apigateway.LambdaIntegration(apiFunction));
+
     // 以下のAPIエンドポイントは現時点では不要なためコメントアウト
-    // // GET /books/{id}
-    // bookResource.addMethod('GET', new apigateway.LambdaIntegration(apiFunction));
-    //
     // // PUT /books/{id}
     // bookResource.addMethod('PUT', new apigateway.LambdaIntegration(apiFunction));
 
