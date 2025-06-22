@@ -37,16 +37,6 @@ jobs:
           node-version: '22'
           cache: 'npm'
       
-      # データベースのセットアップ: 外部SQLファイルを使用
-      - name: Setup database using SQL files
-        run: |
-          # DDLの実行（テーブル構造の作成）
-          PGPASSWORD=postgres psql -h localhost -U tech_lib -d tech_lib_test -f database/ddl.sql
-          
-          # DMLの実行（初期データの挿入）
-          PGPASSWORD=postgres psql -h localhost -U tech_lib -d tech_lib_test -f database/dml.sql
-          
-          echo "Database setup completed successfully"
       
       # フロントエンド（Vue.js）のテスト
       - name: Install frontend dependencies
