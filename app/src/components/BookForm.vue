@@ -3,6 +3,27 @@
     <h2>図書登録</h2>
     <form @submit.prevent="submitForm">
       <div class="form-group">
+        <label for="isbn">ISBN</label>
+        <div class="isbn-input-container">
+          <input
+            id="isbn"
+            v-model="isbn"
+            type="text"
+            placeholder="ISBNを入力してください (例: 9784567890123)"
+            class="isbn-input"
+          />
+          <button
+            type="button"
+            class="auto-fill-btn"
+            :disabled="!isbn || isAutoFilling"
+            @click="autoFillFromISBN"
+          >
+            {{ isAutoFilling ? '取得中...' : '自動入力' }}
+          </button>
+        </div>
+      </div>
+
+      <div class="form-group">
         <label for="title">タイトル *</label>
         <input
           id="title"
@@ -118,6 +139,7 @@
 <script lang="ts">
 import { defineComponent, reactive, ref } from 'vue';
 import { addBook } from '../services/bookService';
+import { fetchBookDataFromISBN } from '../services/isbnService';
 
 export default defineComponent({
   name: 'BookForm',
@@ -138,7 +160,9 @@ export default defineComponent({
     };
 
     const form = reactive({ ...defaultForm });
+    const isbn = ref('');
     const isSubmitting = ref(false);
+    const isAutoFilling = ref(false);
     const error = ref('');
     const successMessage = ref('');
 
@@ -182,18 +206,61 @@ export default defineComponent({
       }
     };
 
+    // ISBN自動入力処理
+    const autoFillFromISBN = async () => {
+      if (!isbn.value.trim()) {
+        error.value = 'ISBNを入力してください';
+        return;
+      }
+
+      error.value = '';
+      isAutoFilling.value = true;
+
+      try {
+        const bookData = await fetchBookDataFromISBN(isbn.value.trim());
+
+        if (bookData) {
+          form.title = bookData.title || '';
+          form.author = bookData.author || '';
+          form.publisher = bookData.publisher || '';
+          form.publicationDate = bookData.publicationDate || '';
+          form.pageCount = bookData.pageCount || 0;
+          form.language = bookData.language || '';
+          form.description = bookData.description || '';
+
+          successMessage.value = 'ISBN情報を自動入力しました';
+          setTimeout(() => {
+            successMessage.value = '';
+          }, 3000);
+        }
+      } catch (err) {
+        if (err instanceof Error) {
+          error.value = err.message;
+        } else {
+          error.value = 'ISBN情報の取得に失敗しました';
+        }
+        console.error('Error fetching ISBN data:', err);
+      } finally {
+        isAutoFilling.value = false;
+      }
+    };
+
     // キャンセル処理
     const cancel = () => {
       Object.assign(form, defaultForm);
+      isbn.value = '';
       emit('cancel');
     };
 
     return {
       form,
+      isbn,
       isSubmitting,
+      isAutoFilling,
       error,
       successMessage,
       submitForm,
+      autoFillFromISBN,
       cancel,
     };
   },
@@ -309,6 +376,44 @@ button:disabled {
   text-align: center;
 }
 
+.isbn-input-container {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.isbn-input {
+  flex: 1;
+}
+
+.auto-fill-btn {
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.auto-fill-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.auto-fill-btn:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
 /* レスポンシブデザインの改善 */
 @media (max-width: 768px) {
   .book-form {
@@ -330,6 +435,15 @@ button:disabled {
   .form-actions button {
     width: 100%;
     padding: 12px;
+  }
+
+  .isbn-input-container {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .auto-fill-btn {
+    width: 100%;
   }
 }
 

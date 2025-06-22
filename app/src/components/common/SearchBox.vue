@@ -113,7 +113,7 @@ export default defineComponent({
     max-width: none;
     margin-bottom: 20px;
   }
-  
+
   .search-input {
     font-size: 16px; /* iOS zoom prevention */
   }

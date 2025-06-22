@@ -8,109 +8,109 @@
       <SearchBox v-model="searchQuery" placeholder="タイトルで検索..." @clear="clearSearch" />
       <div class="table-container">
         <table class="book-table">
-        <thead>
-          <tr>
-            <SortableTableHeader
-              column="title"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="22%"
-              @sort="sortBy"
-            >
-              タイトル
-            </SortableTableHeader>
+          <thead>
+            <tr>
+              <SortableTableHeader
+                column="title"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="22%"
+                @sort="sortBy"
+              >
+                タイトル
+              </SortableTableHeader>
 
-            <SortableTableHeader
-              column="author"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="15%"
-              @sort="sortBy"
-            >
-              著者
-            </SortableTableHeader>
+              <SortableTableHeader
+                column="author"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="15%"
+                @sort="sortBy"
+              >
+                著者
+              </SortableTableHeader>
 
-            <SortableTableHeader
-              column="publisher"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="15%"
-              @sort="sortBy"
-            >
-              出版社
-            </SortableTableHeader>
+              <SortableTableHeader
+                column="publisher"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="15%"
+                @sort="sortBy"
+              >
+                出版社
+              </SortableTableHeader>
 
-            <SortableTableHeader
-              column="publicationDate"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="10%"
-              @sort="sortBy"
-            >
-              出版日
-            </SortableTableHeader>
+              <SortableTableHeader
+                column="publicationDate"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="10%"
+                @sort="sortBy"
+              >
+                出版日
+              </SortableTableHeader>
 
-            <SortableTableHeader
-              column="genre"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="10%"
-              @sort="sortBy"
-            >
-              ジャンル
-            </SortableTableHeader>
+              <SortableTableHeader
+                column="genre"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="10%"
+                @sort="sortBy"
+              >
+                ジャンル
+              </SortableTableHeader>
 
-            <SortableTableHeader
-              column="pageCount"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="8%"
-              @sort="sortBy"
-            >
-              ページ数
-            </SortableTableHeader>
+              <SortableTableHeader
+                column="pageCount"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="8%"
+                @sort="sortBy"
+              >
+                ページ数
+              </SortableTableHeader>
 
-            <SortableTableHeader
-              column="language"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="8%"
-              @sort="sortBy"
-            >
-              言語
-            </SortableTableHeader>
+              <SortableTableHeader
+                column="language"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="8%"
+                @sort="sortBy"
+              >
+                言語
+              </SortableTableHeader>
 
-            <SortableTableHeader
-              column="owner"
-              :current-sort-column="sortColumn"
-              :sort-direction="sortDirection"
-              width="10%"
-              @sort="sortBy"
-            >
-              オーナー
-              <Tooltip text="この技術書を提供した人の名前です" />
-            </SortableTableHeader>
+              <SortableTableHeader
+                column="owner"
+                :current-sort-column="sortColumn"
+                :sort-direction="sortDirection"
+                width="10%"
+                @sort="sortBy"
+              >
+                オーナー
+                <Tooltip text="この技術書を提供した人の名前です" />
+              </SortableTableHeader>
 
-            <th width="5%" class="actions-header">操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="book in filteredAndSortedBooks" :key="book.id">
-            <td class="title">
-              {{ book.title }}
-            </td>
-            <td>{{ book.author }}</td>
-            <td>{{ book.publisher }}</td>
-            <td>{{ book.publicationDate }}</td>
-            <td>{{ book.genre }}</td>
-            <td>{{ book.pageCount }}</td>
-            <td>{{ book.language }}</td>
-            <td class="owner">{{ book.owner }}</td>
-            <td class="actions">
-              <button class="delete-btn" title="削除" @click="confirmDelete(book)">×</button>
-            </td>
-          </tr>
-        </tbody>
+              <th width="5%" class="actions-header">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="book in filteredAndSortedBooks" :key="book.id">
+              <td class="title">
+                {{ book.title }}
+              </td>
+              <td>{{ book.author }}</td>
+              <td>{{ book.publisher }}</td>
+              <td>{{ book.publicationDate }}</td>
+              <td>{{ book.genre }}</td>
+              <td>{{ book.pageCount }}</td>
+              <td>{{ book.language }}</td>
+              <td class="owner">{{ book.owner }}</td>
+              <td class="actions">
+                <button class="delete-btn" title="削除" @click="confirmDelete(book)">×</button>
+              </td>
+            </tr>
+          </tbody>
         </table>
       </div>
       <div v-if="filteredAndSortedBooks.length === 0" class="no-results">
